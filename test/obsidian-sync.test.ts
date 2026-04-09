@@ -2,7 +2,7 @@ import { assert } from "chai";
 import { config } from "../package.json";
 import { pathExists, readTextIfExists } from "../src/utils/filesystem";
 
-const VAULT_PATH = "/Users/hu/Desktop/code/kepano-obsidian";
+const VAULT_PATH = "/tmp/obsitero-test-vault";
 const OUTPUT_FOLDER = "Zotero-dev-test";
 const OUTPUT_DIRECTORY = `${VAULT_PATH}/${OUTPUT_FOLDER}`;
 const INDEX_PATH = `${OUTPUT_DIRECTORY}/_Index.md`;
@@ -29,19 +29,11 @@ describe("obsidian sync", function () {
         true,
       );
       Zotero.Prefs.set(`${config.prefsPrefix}.syncOnModify`, false, true);
-      Zotero.Prefs.set(
-        `${config.prefsPrefix}.createDataviewIndex`,
-        true,
-        true,
-      );
-      Zotero.Prefs.set(
-        `${config.prefsPrefix}.fileNameStrategy`,
-        "title",
-        true,
-      );
+      Zotero.Prefs.set(`${config.prefsPrefix}.createDataviewIndex`, true, true);
+      Zotero.Prefs.set(`${config.prefsPrefix}.fileNameStrategy`, "title", true);
       Zotero.Prefs.set(
         `${config.prefsPrefix}.selectedFields`,
-        "[\"authors\",\"publication\",\"tags\",\"zotero_url\",\"link\"]",
+        '["authors","publication","tags","zotero_url","link"]',
         true,
       );
       Zotero.Prefs.set(
@@ -51,6 +43,7 @@ describe("obsidian sync", function () {
       );
       await logTestStep("prefs-set");
 
+      await Zotero.File.createDirectoryIfMissingAsync(VAULT_PATH);
       await Zotero.File.removeIfExists(INDEX_PATH);
       await removeMarkdownFilesInDirectory(OUTPUT_DIRECTORY);
       await logTestStep("output-cleared");
@@ -75,11 +68,17 @@ describe("obsidian sync", function () {
       assert.include(indexContents as string, "```dataview");
       assert.include(indexContents as string, 'FROM "Zotero-dev-test"');
       assert.include(indexContents as string, "TABLE WITHOUT ID");
-      assert.include(indexContents as string, "link(file.path, display_title) AS Title");
+      assert.include(
+        indexContents as string,
+        "link(file.path, display_title) AS Title",
+      );
       assert.include(indexContents as string, "authors_short AS Authors");
       assert.include(indexContents as string, "publication AS Publication");
       assert.include(indexContents as string, "tags AS Tags");
-      assert.include(indexContents as string, 'choice(link, "[link](" + link + ")", "") AS Url');
+      assert.include(
+        indexContents as string,
+        'choice(link, "[link](" + link + ")", "") AS Url',
+      );
       assert.include(indexContents as string, "SORT last_synced_at DESC");
 
       const allMarkdown = await listMarkdownFiles(OUTPUT_DIRECTORY);
@@ -104,15 +103,14 @@ describe("obsidian sync", function () {
         ),
       );
       assert.isTrue(
-        pageContents.every((content) =>
-          (content as string).includes("cssclasses:") &&
-          (content as string).includes('  - "zotero-paper"'),
+        pageContents.every(
+          (content) =>
+            (content as string).includes("cssclasses:") &&
+            (content as string).includes('  - "zotero-paper"'),
         ),
       );
       assert.isTrue(
-        pageContents.every((content) =>
-          !/^title:/m.test(content as string),
-        ),
+        pageContents.every((content) => !/^title:/m.test(content as string)),
       );
       assert.isTrue(
         pageContents.every((content) =>
@@ -130,25 +128,28 @@ describe("obsidian sync", function () {
         ),
       );
       assert.isTrue(
-        pageContents.every((content) =>
-          (content as string).indexOf("authors_short:") <
-          (content as string).indexOf("last_synced_at:"),
+        pageContents.every(
+          (content) =>
+            (content as string).indexOf("authors_short:") <
+            (content as string).indexOf("last_synced_at:"),
         ),
       );
       assert.isTrue(
-        pageContents.every((content) =>
-          (content as string).includes("code:") &&
-          (content as string).includes("page:"),
+        pageContents.every(
+          (content) =>
+            (content as string).includes("code:") &&
+            (content as string).includes("page:"),
         ),
       );
       assert.isTrue(
-        pageContents.every((content) =>
-          !(content as string).includes('  - "vision"') &&
-          !(content as string).includes('  - "robotics"') &&
-          !(content as string).includes('  - "/unread"') &&
-          !(content as string).includes('  - "/reading"') &&
-          !(content as string).includes('status: "Unread"') &&
-          !(content as string).includes('status: "Reading"'),
+        pageContents.every(
+          (content) =>
+            !(content as string).includes('  - "vision"') &&
+            !(content as string).includes('  - "robotics"') &&
+            !(content as string).includes('  - "/unread"') &&
+            !(content as string).includes('  - "/reading"') &&
+            !(content as string).includes('status: "Unread"') &&
+            !(content as string).includes('status: "Reading"'),
         ),
       );
       assert.isTrue(
@@ -176,7 +177,9 @@ describe("obsidian sync", function () {
       await logTestStep("assertions-finished");
     } catch (error) {
       const message =
-        error instanceof Error ? error.stack || error.message : JSON.stringify(error);
+        error instanceof Error
+          ? error.stack || error.message
+          : JSON.stringify(error);
       assert.fail(`obsidian sync integration failed: ${message}`);
     }
   });
@@ -235,7 +238,9 @@ async function createFixtureCollection() {
   itemA.addTag("/unread");
   itemA.addToCollection(collection.id);
   await itemA.saveTx();
-  await logTestStep("createFixtureCollection:item-a-saved", { itemID: itemA.id });
+  await logTestStep("createFixtureCollection:item-a-saved", {
+    itemID: itemA.id,
+  });
 
   const aiNote = new Zotero.Item("note");
   aiNote.libraryID = Zotero.Libraries.userLibraryID;
@@ -267,7 +272,9 @@ async function createFixtureCollection() {
   itemB.addTag("/reading");
   itemB.addToCollection(collection.id);
   await itemB.saveTx();
-  await logTestStep("createFixtureCollection:item-b-saved", { itemID: itemB.id });
+  await logTestStep("createFixtureCollection:item-b-saved", {
+    itemID: itemB.id,
+  });
 
   return { collection, items: [itemA, itemB] };
 }

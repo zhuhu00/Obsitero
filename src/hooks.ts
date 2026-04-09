@@ -1,6 +1,9 @@
 import { registerPreferencePane } from "./modules/preferencesPane";
 import { registerPrefsScripts } from "./modules/preferenceScript";
-import { registerWindowMenus, unregisterWindowMenus } from "./modules/windowMenus";
+import {
+  registerWindowMenus,
+  unregisterWindowMenus,
+} from "./modules/windowMenus";
 import {
   handleAutoSyncForNotifier,
   syncEnabledCollectionsOnStartup,

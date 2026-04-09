@@ -117,7 +117,14 @@ describe("sync markdown rendering", function () {
         ...sampleItem,
         title: "OccAny: Generalized Unconstrained Urban 3D Occupancy",
       },
-      selectedFields: ["title", "authors", "publication", "tags", "zotero_url", "link"],
+      selectedFields: [
+        "title",
+        "authors",
+        "publication",
+        "tags",
+        "zotero_url",
+        "link",
+      ],
       syncedAt: "2026-04-09T01:20:00.000Z",
     });
 
@@ -217,13 +224,17 @@ describe("sync markdown rendering", function () {
     assert.ok(markdown.includes('publication: "CVPR2026"'));
     assert.ok(markdown.includes('  - "Done"'));
     assert.ok(markdown.includes('link: "https://local.example.com/paper"'));
-    assert.ok(markdown.includes('zotero_url: "zotero://select/library/items/LOCAL1234"'));
+    assert.ok(
+      markdown.includes(
+        'zotero_url: "zotero://select/library/items/LOCAL1234"',
+      ),
+    );
     assert.ok(markdown.includes('code: "https://github.com/example/project"'));
     assert.ok(markdown.includes('page: "https://project.example.com"'));
     assert.ok(markdown.includes('last_synced_at: "2026-04-09T02:00:00.000Z"'));
     assert.ok(!markdown.includes('display_title: "EmbodiedSAM"'));
     assert.ok(!markdown.includes('publication: "ICLR"'));
-    assert.ok(!markdown.includes('zotero://select/library/items/ABCD1234'));
+    assert.ok(!markdown.includes("zotero://select/library/items/ABCD1234"));
   });
 
   it("renders all Zotero child notes after My Notes in a managed block", function () {
@@ -244,7 +255,9 @@ describe("sync markdown rendering", function () {
     assert.ok(markdown.includes("## Zotero Notes"));
     assert.ok(markdown.includes("Long AI summary"));
     assert.ok(markdown.includes("Short human note"));
-    assert.ok(markdown.indexOf("## My Notes") < markdown.indexOf("## Zotero Notes"));
+    assert.ok(
+      markdown.indexOf("## My Notes") < markdown.indexOf("## Zotero Notes"),
+    );
   });
 
   it("creates a My Notes section when updating files that do not have one yet", function () {

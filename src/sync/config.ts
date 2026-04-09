@@ -115,7 +115,9 @@ export function loadSyncedCollectionIDs() {
 }
 
 export function isSyncField(value: unknown): value is SyncField {
-  return typeof value === "string" && SYNCABLE_FIELDS.includes(value as SyncField);
+  return (
+    typeof value === "string" && SYNCABLE_FIELDS.includes(value as SyncField)
+  );
 }
 
 function normalizeField(value: unknown): SyncField | undefined {

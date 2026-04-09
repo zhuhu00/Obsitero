@@ -3,15 +3,19 @@ import { getString } from "../utils/locale";
 import { openPreferencePane } from "./preferencesPane";
 
 export function registerWindowMenus(win: _ZoteroTypes.MainWindow) {
-  win.MozXULElement.insertFTLIfNeeded(`${addon.data.config.addonRef}-mainWindow.ftl`);
+  win.MozXULElement.insertFTLIfNeeded(
+    `${addon.data.config.addonRef}-mainWindow.ftl`,
+  );
 
-  const managedElements = addon.data.managedWindowElements.get(win) ?? new Set();
+  const managedElements =
+    addon.data.managedWindowElements.get(win) ?? new Set();
 
   const collectionMenu = createMenuItem(win, {
     parentId: "zotero-collectionmenu",
     label: getString("menu-sync-collection"),
     onCommand: async () => {
-      const collection = Zotero.getActiveZoteroPane()?.getSelectedCollection(false);
+      const collection =
+        Zotero.getActiveZoteroPane()?.getSelectedCollection(false);
       if (collection) {
         await syncCollectionToObsidian(collection);
       }

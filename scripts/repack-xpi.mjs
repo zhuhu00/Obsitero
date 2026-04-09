@@ -1,3 +1,5 @@
+/* global console, process */
+
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, rmSync } from "node:fs";
 import path from "node:path";

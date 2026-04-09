@@ -2,7 +2,9 @@ import type { SyncChildNote, SyncItemData } from "./markdown";
 import { buildCollectionFullName } from "./collections";
 import { resolveItemUrl } from "./item-url";
 
-export async function buildSyncItemData(item: Zotero.Item): Promise<SyncItemData> {
+export async function buildSyncItemData(
+  item: Zotero.Item,
+): Promise<SyncItemData> {
   return {
     itemKey: item.key,
     title: item.getField("title") || item.getDisplayTitle(),
@@ -58,8 +60,8 @@ async function getChildNotes(item: Zotero.Item): Promise<SyncChildNote[]> {
     return [];
   }
 
-  const notes = Zotero.Items.get(noteIDs).filter(
-    (note): note is Zotero.Item => Boolean(note),
+  const notes = Zotero.Items.get(noteIDs).filter((note): note is Zotero.Item =>
+    Boolean(note),
   );
   if (!notes.length) {
     return [];
@@ -101,7 +103,9 @@ function decodeHtmlEntities(value: string) {
 }
 
 function formatCreatorName(creator: _ZoteroTypes.Item.Creator) {
-  const singleFieldName = (creator as _ZoteroTypes.Item.Creator & { name?: string }).name;
+  const singleFieldName = (
+    creator as _ZoteroTypes.Item.Creator & { name?: string }
+  ).name;
   if (singleFieldName) {
     return singleFieldName.trim();
   }

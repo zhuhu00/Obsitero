@@ -69,7 +69,9 @@ export async function syncItemsToObsidian(items: Zotero.Item[]) {
     (getPref("fileNameStrategy") as FileNameStrategy | undefined) ||
     DEFAULT_FILE_NAME_STRATEGY;
   const syncedAt = new Date().toISOString();
-  await debugLog("syncItemsToObsidian:list-existing:start", { outputDirectory });
+  await debugLog("syncItemsToObsidian:list-existing:start", {
+    outputDirectory,
+  });
   const existingFiles = await listExistingMarkdownFiles(outputDirectory);
   await debugLog("syncItemsToObsidian:list-existing:done", {
     outputDirectory,
@@ -100,10 +102,7 @@ export async function syncItemsToObsidian(items: Zotero.Item[]) {
     const fileName =
       existingFileName ||
       resolveUniqueMarkdownFilename(itemData, fileNameStrategy, usedFileNames);
-    const filePath = joinPath(
-      outputDirectory,
-      fileName,
-    );
+    const filePath = joinPath(outputDirectory, fileName);
     await debugLog("syncItemsToObsidian:writing-file", {
       itemID: item.id,
       itemKey: item.key,
@@ -135,8 +134,13 @@ export async function syncItemsToObsidian(items: Zotero.Item[]) {
     await debugLog("syncItemsToObsidian:wrote-index", { indexPath });
   }
 
-  showProgress(`Synced ${validItems.length} Zotero item(s) to Obsidian.`, "success");
-  await debugLog("syncItemsToObsidian:done", { syncedCount: validItems.length });
+  showProgress(
+    `Synced ${validItems.length} Zotero item(s) to Obsidian.`,
+    "success",
+  );
+  await debugLog("syncItemsToObsidian:done", {
+    syncedCount: validItems.length,
+  });
   return { syncedCount: validItems.length };
 }
 
@@ -220,9 +224,9 @@ export async function handleAutoSyncForNotifier(
     const items = Zotero.Items.get(ids.map(Number)).filter(
       (item) =>
         item.isRegularItem() &&
-        item.getCollections().some((collectionID) =>
-          monitoredCollectionIDs.has(collectionID),
-        ),
+        item
+          .getCollections()
+          .some((collectionID) => monitoredCollectionIDs.has(collectionID)),
     );
     if (items.length) {
       await syncItemsToObsidian(items);
@@ -231,13 +235,15 @@ export async function handleAutoSyncForNotifier(
   }
 
   if (type === "item-tag" && (event === "modify" || event === "remove")) {
-    const itemIDs = ids.map((compoundID) => Number(String(compoundID).split("-")[0]));
+    const itemIDs = ids.map((compoundID) =>
+      Number(String(compoundID).split("-")[0]),
+    );
     const items = Zotero.Items.get(itemIDs).filter(
       (item) =>
         item.isRegularItem() &&
-        item.getCollections().some((collectionID) =>
-          monitoredCollectionIDs.has(collectionID),
-        ),
+        item
+          .getCollections()
+          .some((collectionID) => monitoredCollectionIDs.has(collectionID)),
     );
     if (items.length) {
       await syncItemsToObsidian(items);
@@ -255,7 +261,9 @@ function getOutputDirectory() {
     return "";
   }
 
-  const outputFolder = (getPref("outputFolder") || DEFAULT_OUTPUT_FOLDER).trim();
+  const outputFolder = (
+    getPref("outputFolder") || DEFAULT_OUTPUT_FOLDER
+  ).trim();
   return outputFolder ? joinPath(vaultPath, outputFolder) : vaultPath;
 }
 
@@ -304,7 +312,7 @@ function extractZoteroUrl(content?: string) {
   if (!rawValue) {
     return undefined;
   }
-  if (rawValue.startsWith("\"")) {
+  if (rawValue.startsWith('"')) {
     try {
       return JSON.parse(rawValue) as string;
     } catch {

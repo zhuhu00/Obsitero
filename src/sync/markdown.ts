@@ -87,12 +87,7 @@ const LAST_SYNC_FIELD = "last_synced_at";
 const DISPLAY_TITLE_FIELD = "display_title";
 const AUTHORS_SHORT_FIELD = "authors_short";
 const NOTE_CSS_CLASSES = ["zotero-paper"];
-const INDEX_CSS_CLASSES = [
-  "zotero-index",
-  "wide",
-  "table-lines",
-  "row-alt",
-];
+const INDEX_CSS_CLASSES = ["zotero-index", "wide", "table-lines", "row-alt"];
 const PRIMARY_FIELD_ORDER: SyncField[] = [
   "authors",
   "publication",
@@ -136,7 +131,9 @@ export function resolveUniqueMarkdownFilename(
     return candidate;
   }
 
-  const disambiguator = sanitizeFileName(item.citationKey || item.itemKey || "untitled");
+  const disambiguator = sanitizeFileName(
+    item.citationKey || item.itemKey || "untitled",
+  );
   const uniqueCandidate = `${buildBaseFileName(item, strategy)} - ${disambiguator}.md`;
   usedNames.add(uniqueCandidate);
   return uniqueCandidate;
@@ -157,9 +154,13 @@ export function renderSyncedMarkdown({
   const userSection = extractMyNotesSection(existingContent);
   const managedBlock = renderManagedNotesBlock(item.childNotes ?? []);
 
-  return [frontmatter, "", userSection, ...(managedBlock ? ["", managedBlock] : []), ""].join(
-    "\n",
-  );
+  return [
+    frontmatter,
+    "",
+    userSection,
+    ...(managedBlock ? ["", managedBlock] : []),
+    "",
+  ].join("\n");
 }
 
 export function buildDataviewIndex({
@@ -197,13 +198,17 @@ function renderFrontmatter(
   );
   lines.push(
     `${DISPLAY_TITLE_FIELD}: ${escapeYaml(
-      existingDisplayTitle.found ? existingDisplayTitle.value : (item.title ?? ""),
+      existingDisplayTitle.found
+        ? existingDisplayTitle.value
+        : (item.title ?? ""),
     )}`,
   );
   lines.push(...renderOrderedFields(item, selectedFields, existingContent));
   lines.push(...renderField("code", item, existingContent));
   lines.push(...renderField("page", item, existingContent));
-  lines.push(...renderHelperArrayField(AUTHORS_SHORT_FIELD, item.authorsShort ?? []));
+  lines.push(
+    ...renderHelperArrayField(AUTHORS_SHORT_FIELD, item.authorsShort ?? []),
+  );
   if (syncedAt) {
     lines.push(`${LAST_SYNC_FIELD}: ${escapeYaml(syncedAt)}`);
   }
@@ -289,7 +294,9 @@ function getFieldValue(
     case "publication":
       return item.publication ?? "";
     case "tags":
-      return item.tags ?? extractExistingArrayField(existingContent, "tags").value;
+      return (
+        item.tags ?? extractExistingArrayField(existingContent, "tags").value
+      );
     case "code":
       return extractExistingScalarField(existingContent, "code").value;
     case "page":
@@ -376,7 +383,9 @@ function extractExistingArrayField(
   }
 
   const lines = frontmatter.split("\n");
-  const startIndex = lines.findIndex((line) => line.startsWith(`${fieldName}:`));
+  const startIndex = lines.findIndex((line) =>
+    line.startsWith(`${fieldName}:`),
+  );
   if (startIndex === -1) {
     return { found: false, value: [] };
   }
@@ -483,7 +492,10 @@ function selectBaseFileName(
   }
 }
 
-function buildBaseFileName(item: SyncItemData, strategy: FileNameStrategy): string {
+function buildBaseFileName(
+  item: SyncItemData,
+  strategy: FileNameStrategy,
+): string {
   return sanitizeFileName(
     selectBaseFileName(item, strategy) ??
       item.citationKey ??
@@ -493,13 +505,19 @@ function buildBaseFileName(item: SyncItemData, strategy: FileNameStrategy): stri
 }
 
 function sanitizeFileName(value: string): string {
-  const sanitized = value
+  const sanitized = stripControlCharacters(value)
     .replace(/:/g, "_")
-    .replace(/[<>"/\\|?*\x00-\x1F]/g, " ")
+    .replace(/[<>"/\\|?*]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 
   return sanitized || "untitled";
+}
+
+function stripControlCharacters(value: string) {
+  return Array.from(value)
+    .filter((character) => character.charCodeAt(0) >= 32)
+    .join("");
 }
 
 function escapeYaml(value: string): string {

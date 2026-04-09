@@ -24,7 +24,10 @@ export function joinPath(...parts: Array<string | undefined>) {
     (part): part is string => typeof part === "string" && part.length > 0,
   );
 
-  if (typeof PathUtils !== "undefined" && typeof PathUtils.join === "function") {
+  if (
+    typeof PathUtils !== "undefined" &&
+    typeof PathUtils.join === "function"
+  ) {
     return PathUtils.join(...cleanedParts);
   }
 
@@ -38,7 +41,9 @@ export function joinPath(...parts: Array<string | undefined>) {
 
   return cleanedParts
     .map((part, index) =>
-      index === 0 ? part.replace(/[\\/]+$/, "") : part.replace(/^[\\/]+|[\\/]+$/g, ""),
+      index === 0
+        ? part.replace(/[\\/]+$/, "")
+        : part.replace(/^[\\/]+|[\\/]+$/g, ""),
     )
     .join("/");
 }

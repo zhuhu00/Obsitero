@@ -25,7 +25,8 @@ export async function registerPrefsScripts(window: Window) {
 
 function renderStaticValues(document: Document) {
   getInput(document, "vault-path").value = getPref("vaultPath") || "";
-  getInput(document, "output-folder").value = getPref("outputFolder") || "Zotero";
+  getInput(document, "output-folder").value =
+    getPref("outputFolder") || "Zotero";
   getCheckbox(document, "sync-on-modify").checked = Boolean(
     getPref("syncOnModify"),
   );
@@ -131,7 +132,9 @@ function bindPrefEvents(window: Window) {
         "input[type='checkbox'][data-field]:checked",
       ),
     )
-      .filter((input): input is HTMLInputElement => input instanceof HTMLInputElement)
+      .filter(
+        (input): input is HTMLInputElement => input instanceof HTMLInputElement,
+      )
       .map((input) => input.dataset.field!)
       .filter(isSyncField);
     saveSelectedFields(selectedFields);
@@ -144,7 +147,10 @@ function bindPrefEvents(window: Window) {
       getContainer(document, "collections-container").querySelectorAll(
         "input[type='checkbox'][data-collection-id]",
       ),
-    ).filter((element): element is HTMLInputElement => element instanceof HTMLInputElement)) {
+    ).filter(
+      (element): element is HTMLInputElement =>
+        element instanceof HTMLInputElement,
+    )) {
       const collectionID = Number(input.dataset.collectionId);
       if (collectionID > 0) {
         configs[collectionID] = { syncEnabled: input.checked };
@@ -167,7 +173,9 @@ function bindPrefEvents(window: Window) {
 }
 
 function getElement(document: Document, suffix: string) {
-  return document.getElementById(`zotero-prefpane-${config.addonRef}-${suffix}`);
+  return document.getElementById(
+    `zotero-prefpane-${config.addonRef}-${suffix}`,
+  );
 }
 
 function getInput(document: Document, suffix: string) {

@@ -1,9 +1,13 @@
 export function getAllCollections(): Zotero.Collection[] {
   return Zotero.Libraries.getAll()
     .filter((library) => library.libraryType !== "feed")
-    .flatMap((library) => Zotero.Collections.getByLibrary(library.libraryID, true))
+    .flatMap((library) =>
+      Zotero.Collections.getByLibrary(library.libraryID, true),
+    )
     .sort((left, right) =>
-      buildCollectionFullName(left).localeCompare(buildCollectionFullName(right)),
+      buildCollectionFullName(left).localeCompare(
+        buildCollectionFullName(right),
+      ),
     );
 }
 

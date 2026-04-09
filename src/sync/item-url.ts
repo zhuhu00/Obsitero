@@ -17,7 +17,9 @@ export function resolveItemUrl(item: Pick<Zotero.Item, "getField">) {
   }
 
   const extra = item.getField("extra");
-  const arxivFromExtra = extra?.match(/(?:^|\n)arXiv:\s*([^\s]+)/i)?.[1]?.trim();
+  const arxivFromExtra = extra
+    ?.match(/(?:^|\n)arXiv:\s*([^\s]+)/i)?.[1]
+    ?.trim();
   if (arxivFromExtra) {
     return `https://arxiv.org/abs/${arxivFromExtra}`;
   }

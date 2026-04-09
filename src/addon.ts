@@ -51,14 +51,16 @@ class Addon {
       },
       syncItemsByIDs,
       syncSelectedCollection: async () => {
-        const collection = Zotero.getActiveZoteroPane()?.getSelectedCollection(false);
+        const collection =
+          Zotero.getActiveZoteroPane()?.getSelectedCollection(false);
         if (!collection) {
           throw new Error("No collection selected");
         }
         return syncCollectionToObsidian(collection);
       },
       syncSelectedItems: async () => {
-        const items = Zotero.getActiveZoteroPane()?.getSelectedItems(false) || [];
+        const items =
+          Zotero.getActiveZoteroPane()?.getSelectedItems(false) || [];
         return syncItemsToObsidian(items);
       },
       syncEnabledCollectionsOnStartup,
