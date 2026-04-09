@@ -1,0 +1,12 @@
+pref-title = Obsitero
+pref-vault-path = Obsidian 仓库路径
+pref-vault-browse = 选择
+pref-output-folder = 输出文件夹
+pref-sync-title = 同步
+pref-sync-help = 勾选需要自动同步到 Obsidian 的集合。
+pref-sync-on-modify = 监控集合中的条目变更时自动同步
+pref-page-title = 页面
+pref-file-name-strategy = 文件命名策略
+pref-create-index = 生成 Dataview 索引页
+pref-fields-title = Frontmatter 字段
+pref-help = { $name } Build { $version } { $time }

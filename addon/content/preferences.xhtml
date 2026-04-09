@@ -1,0 +1,95 @@
+<linkset>
+  <html:link rel="localization" href="__addonRef__-preferences.ftl" />
+</linkset>
+<vbox
+  flex="1"
+  onload="Zotero.__addonInstance__.hooks.onPrefsEvent('load', { window })"
+>
+  <groupbox>
+    <label><html:h2 data-l10n-id="pref-title"></html:h2></label>
+
+    <hbox align="center">
+      <html:label
+        for="zotero-prefpane-__addonRef__-vault-path"
+        data-l10n-id="pref-vault-path"
+      ></html:label>
+      <html:input
+        type="text"
+        id="zotero-prefpane-__addonRef__-vault-path"
+      ></html:input>
+      <html:button
+        id="zotero-prefpane-__addonRef__-vault-browse"
+        data-l10n-id="pref-vault-browse"
+      ></html:button>
+    </hbox>
+
+    <hbox align="center">
+      <html:label
+        for="zotero-prefpane-__addonRef__-output-folder"
+        data-l10n-id="pref-output-folder"
+      ></html:label>
+      <html:input
+        type="text"
+        id="zotero-prefpane-__addonRef__-output-folder"
+      ></html:input>
+    </hbox>
+  </groupbox>
+
+  <groupbox>
+    <label><html:h2 data-l10n-id="pref-sync-title"></html:h2></label>
+    <html:label
+      data-l10n-id="pref-sync-help"
+      class="form-help"
+    ></html:label>
+
+    <html:label class="checkbox-row">
+      <html:input
+        type="checkbox"
+        id="zotero-prefpane-__addonRef__-sync-on-modify"
+      ></html:input>
+      <html:span data-l10n-id="pref-sync-on-modify"></html:span>
+    </html:label>
+
+    <html:div
+      id="zotero-prefpane-__addonRef__-collections-container"
+      class="checkbox-list"
+    ></html:div>
+  </groupbox>
+
+  <groupbox>
+    <label><html:h2 data-l10n-id="pref-page-title"></html:h2></label>
+
+    <hbox align="center">
+      <html:label
+        for="zotero-prefpane-__addonRef__-file-name-strategy"
+        data-l10n-id="pref-file-name-strategy"
+      ></html:label>
+      <html:select
+        id="zotero-prefpane-__addonRef__-file-name-strategy"
+      ></html:select>
+    </hbox>
+
+    <html:label class="checkbox-row">
+      <html:input
+        type="checkbox"
+        id="zotero-prefpane-__addonRef__-create-index"
+      ></html:input>
+      <html:span data-l10n-id="pref-create-index"></html:span>
+    </html:label>
+  </groupbox>
+
+  <groupbox>
+    <label><html:h2 data-l10n-id="pref-fields-title"></html:h2></label>
+    <html:div
+      id="zotero-prefpane-__addonRef__-fields-container"
+      class="checkbox-list"
+    ></html:div>
+  </groupbox>
+
+  <vbox>
+    <html:label
+      data-l10n-id="pref-help"
+      data-l10n-args='{"time": "__buildTime__","name": "__addonName__","version":"__buildVersion__"}'
+    ></html:label>
+  </vbox>
+</vbox>

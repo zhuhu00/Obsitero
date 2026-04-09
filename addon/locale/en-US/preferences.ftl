@@ -1,0 +1,12 @@
+pref-title = Obsitero
+pref-vault-path = Obsidian vault path
+pref-vault-browse = Browse
+pref-output-folder = Output folder
+pref-sync-title = Sync
+pref-sync-help = Enable the collections that should auto-sync to Obsidian.
+pref-sync-on-modify = Sync when monitored items change
+pref-page-title = Page
+pref-file-name-strategy = File name strategy
+pref-create-index = Create Dataview index page
+pref-fields-title = Frontmatter Fields
+pref-help = { $name } Build { $version } { $time }
