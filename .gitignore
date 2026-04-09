@@ -13,6 +13,7 @@ tsconfig.tsbuildinfo
 .env
 .scaffold
 build
+dist
 logs
 
 # Local planning/spec docs
