@@ -1,7 +1,7 @@
 {
   "name": "obsitero",
   "type": "module",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Notero-style Zotero to Obsidian markdown sync plugin for research notes",
   "config": {
     "addonName": "Obsitero",
