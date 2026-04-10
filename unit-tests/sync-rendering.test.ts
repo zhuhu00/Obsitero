@@ -140,7 +140,9 @@ describe("sync markdown rendering", function () {
     assert.ok(markdown.includes('  - "Unread"'));
     assert.ok(markdown.includes('link: "https://example.com/paper"'));
     assert.ok(
-      markdown.includes('pdf: "file:///Users/hu/Zotero/storage/ABCD1234/paper.pdf"'),
+      markdown.includes(
+        'pdf: "file:///Users/hu/Zotero/storage/ABCD1234/paper.pdf"',
+      ),
     );
   });
 
@@ -232,7 +234,9 @@ describe("sync markdown rendering", function () {
     assert.ok(markdown.includes('  - "Done"'));
     assert.ok(markdown.includes('link: "https://local.example.com/paper"'));
     assert.ok(
-      markdown.includes('pdf: "file:///Users/hu/Zotero/storage/ABCD1234/paper.pdf"'),
+      markdown.includes(
+        'pdf: "file:///Users/hu/Zotero/storage/ABCD1234/paper.pdf"',
+      ),
     );
     assert.ok(
       markdown.includes(
@@ -300,10 +304,10 @@ describe("sync markdown rendering", function () {
       [
         "filters:",
         "  and:",
-        '    - \'file.inFolder("Zotero")\'',
-        '    - \'file.ext == "md"\'',
+        "    - 'file.inFolder(\"Zotero\")'",
+        "    - 'file.ext == \"md\"'",
         "formulas:",
-        '  title_link: \'if(file.name, link(file.name, display_title), "")\'',
+        "  title_link: 'if(file.name, link(file.name, display_title), \"\")'",
         '  url_link: \'if(link, link(link, "link"), "")\'',
         '  pdf_link: \'if(pdf, link(pdf, "pdf"), "")\'',
         '  zotero_link: \'if(zotero_url, link(zotero_url, "zotero"), "")\'',
@@ -327,7 +331,7 @@ describe("sync markdown rendering", function () {
         "  page:",
         '    displayName: "Page"',
         "views:",
-        '  - type: table',
+        "  - type: table",
         '    name: "Library"',
         "    order:",
         "      - formula.title_link",

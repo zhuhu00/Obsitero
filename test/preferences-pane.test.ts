@@ -23,9 +23,10 @@ describe("preferences pane", function () {
     };
 
     try {
-      const document = Zotero.getMainWindows()[0].document.implementation.createHTMLDocument(
-        "Obsitero Preferences",
-      );
+      const document =
+        Zotero.getMainWindows()[0].document.implementation.createHTMLDocument(
+          "Obsitero Preferences",
+        );
 
       for (const [suffix, tagName, type] of [
         ["vault-path", "input", "text"],
@@ -99,7 +100,10 @@ describe("preferences pane", function () {
         "Zotero-saved",
       );
       assert.equal(Zotero.Prefs.get(prefKey("syncOnModify"), true), true);
-      assert.equal(Zotero.Prefs.get(prefKey("createDataviewIndex"), true), false);
+      assert.equal(
+        Zotero.Prefs.get(prefKey("createDataviewIndex"), true),
+        false,
+      );
       assert.equal(
         Zotero.Prefs.get(prefKey("fileNameStrategy"), true),
         "citationKey",
@@ -120,8 +124,16 @@ describe("preferences pane", function () {
       assert.fail(`preferences pane test failed: ${message}`);
     } finally {
       Zotero.Prefs.set(prefKey("vaultPath"), originalPrefs.vaultPath, true);
-      Zotero.Prefs.set(prefKey("outputFolder"), originalPrefs.outputFolder, true);
-      Zotero.Prefs.set(prefKey("syncOnModify"), originalPrefs.syncOnModify, true);
+      Zotero.Prefs.set(
+        prefKey("outputFolder"),
+        originalPrefs.outputFolder,
+        true,
+      );
+      Zotero.Prefs.set(
+        prefKey("syncOnModify"),
+        originalPrefs.syncOnModify,
+        true,
+      );
       Zotero.Prefs.set(
         prefKey("createDataviewIndex"),
         originalPrefs.createDataviewIndex,
@@ -147,12 +159,16 @@ describe("preferences pane", function () {
 
   it("falls back to the default fields when no frontmatter field is selected", function () {
     const prefKey = (key: string) => `${config.prefsPrefix}.${key}`;
-    const originalSelectedFields = Zotero.Prefs.get(prefKey("selectedFields"), true);
+    const originalSelectedFields = Zotero.Prefs.get(
+      prefKey("selectedFields"),
+      true,
+    );
 
     try {
-      const document = Zotero.getMainWindows()[0].document.implementation.createHTMLDocument(
-        "Obsitero Preferences",
-      );
+      const document =
+        Zotero.getMainWindows()[0].document.implementation.createHTMLDocument(
+          "Obsitero Preferences",
+        );
 
       for (const [suffix, tagName, type] of [
         ["vault-path", "input", "text"],
@@ -204,7 +220,9 @@ describe("preferences pane", function () {
         error instanceof Error
           ? error.stack || error.message
           : JSON.stringify(error);
-      assert.fail(`preferences pane default field fallback test failed: ${message}`);
+      assert.fail(
+        `preferences pane default field fallback test failed: ${message}`,
+      );
     } finally {
       Zotero.Prefs.set(prefKey("selectedFields"), originalSelectedFields, true);
     }

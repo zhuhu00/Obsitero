@@ -32,7 +32,9 @@ export async function buildSyncItemData(
 
 async function getPdfLink(item: Zotero.Item) {
   const attachments = await item.getBestAttachments();
-  const attachment = attachments.find((candidate) => candidate.isPDFAttachment());
+  const attachment = attachments.find((candidate) =>
+    candidate.isPDFAttachment(),
+  );
   if (!attachment) {
     return "";
   }

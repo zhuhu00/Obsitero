@@ -33,10 +33,7 @@ const LEGACY_DEFAULT_SYNC_FIELDS: SyncField[] = [
 ];
 
 export function loadSelectedFields(): SyncField[] {
-  const raw = Zotero.Prefs.get(
-    `${config.prefsPrefix}.selectedFields`,
-    true,
-  );
+  const raw = Zotero.Prefs.get(`${config.prefsPrefix}.selectedFields`, true);
 
   if (typeof raw !== "string" || !raw.trim()) {
     return [...DEFAULT_SYNC_FIELDS];
@@ -153,5 +150,7 @@ function isLegacyDefaultFieldSelection(fields: SyncField[]) {
     return false;
   }
 
-  return LEGACY_DEFAULT_SYNC_FIELDS.every((field, index) => fields[index] === field);
+  return LEGACY_DEFAULT_SYNC_FIELDS.every(
+    (field, index) => fields[index] === field,
+  );
 }

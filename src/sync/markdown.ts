@@ -166,14 +166,12 @@ export function renderSyncedMarkdown({
   ].join("\n");
 }
 
-export function buildBasesFile({
-  outputFolder,
-}: BasesFileOptions): string {
+export function buildBasesFile({ outputFolder }: BasesFileOptions): string {
   return [
     "filters:",
     "  and:",
     `    - 'file.inFolder("${escapeForSingleQuotedBaseString(outputFolder)}")'`,
-    '    - \'file.ext == "md"\'',
+    "    - 'file.ext == \"md\"'",
     "formulas:",
     `  title_link: '${buildLinkFormula("file.name", "display_title", true)}'`,
     `  url_link: '${buildLinkFormula("link", "link")}'`,
@@ -199,17 +197,17 @@ export function buildBasesFile({
     "  page:",
     '    displayName: "Page"',
     "views:",
-    '  - type: table',
+    "  - type: table",
     '    name: "Library"',
     "    order:",
     "      - formula.title_link",
     "      - note.authors_short",
-      "      - note.publication",
-      "      - note.tags",
-      "      - formula.url_link",
-      "      - formula.pdf_link",
-      "      - formula.zotero_link",
-      "      - note.code",
+    "      - note.publication",
+    "      - note.tags",
+    "      - formula.url_link",
+    "      - formula.pdf_link",
+    "      - formula.zotero_link",
+    "      - note.code",
     "      - note.page",
     "    sort:",
     "      - property: note.last_synced_at",
@@ -250,7 +248,11 @@ function renderFrontmatter(
   return lines.join("\n");
 }
 
-function buildLinkFormula(field: string, label: string, labelIsExpression = false) {
+function buildLinkFormula(
+  field: string,
+  label: string,
+  labelIsExpression = false,
+) {
   const renderedLabel = labelIsExpression ? label : `"${label}"`;
   return `if(${field}, link(${field}, ${renderedLabel}), "")`;
 }
