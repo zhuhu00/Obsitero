@@ -162,7 +162,7 @@ Generated sync output is organized like this:
 Obsitero does not generate a root dashboard note for you. If you want a vault-level entry page, create it yourself and embed the generated base:
 
 ```md
-![[Zotero.base]]
+![[Zotero/Zotero.base]]
 ```
 
 This keeps the plugin focused on sync output only, while letting you style and organize your own entry pages however you want.

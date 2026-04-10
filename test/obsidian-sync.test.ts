@@ -97,9 +97,13 @@ describe("obsidian sync", function () {
         await pathExists(LEGACY_TEMPLATE_BASES_PATH),
         "legacy template bases base remained",
       );
-      assert.isFalse(
+      assert.isTrue(
         await pathExists(LEGACY_SPACED_LIBRARY_NOTE_PATH),
-        "legacy spaced library note remained",
+        "manual spaced library note should be preserved",
+      );
+      assert.equal(
+        await readTextIfExists(LEGACY_SPACED_LIBRARY_NOTE_PATH),
+        "![[Zotero.base]]\n",
       );
       assert.isTrue(
         await pathExists(LIBRARY_NOTE_PATH),
@@ -237,6 +241,45 @@ describe("obsidian sync", function () {
           ? error.stack || error.message
           : JSON.stringify(error);
       assert.fail(`obsidian sync integration failed: ${message}`);
+    }
+  });
+
+  it("does not sync when the output folder preference is blank", async function () {
+    this.timeout(60000);
+    try {
+      const { items } = await createFixtureCollection();
+      const itemIDs = items.map((item) => item.id);
+
+      Zotero.Prefs.set(`${config.prefsPrefix}.vaultPath`, VAULT_PATH, true);
+      Zotero.Prefs.set(`${config.prefsPrefix}.outputFolder`, "", true);
+      Zotero.Prefs.set(`${config.prefsPrefix}.syncOnModify`, false, true);
+      Zotero.Prefs.set(`${config.prefsPrefix}.createDataviewIndex`, true, true);
+
+      await removeMarkdownFilesInDirectory(OUTPUT_DIRECTORY);
+      await Zotero.File.removeIfExists(BASE_PATH);
+
+      // @ts-expect-error plugin instance is attached dynamically
+      const plugin = Zotero[config.addonInstance];
+      assert.isOk(plugin, "plugin instance missing");
+
+      const result = await plugin.api.syncItemsByIDs(itemIDs);
+
+      assert.deepInclude(result, { syncedCount: 0 });
+      assert.isFalse(await pathExists(BASE_PATH), "base file should not exist");
+      assert.isFalse(
+        await pathExists(`${VAULT_PATH}/Test Paper Alpha.md`),
+        "paper markdown should not be written to vault root",
+      );
+      assert.isFalse(
+        await pathExists(`${VAULT_PATH}/Test Paper Beta.md`),
+        "paper markdown should not be written to vault root",
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.stack || error.message
+          : JSON.stringify(error);
+      assert.fail(`blank output folder integration failed: ${message}`);
     }
   });
 });

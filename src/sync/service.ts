@@ -22,7 +22,6 @@ const BASES_FILE_NAME = "Zotero.base";
 const LEGACY_BASES_DIRECTORY = "Bases";
 const LEGACY_TEMPLATE_BASES_PARENT_DIRECTORY = "Templates";
 const LEGACY_TEMPLATE_BASES_CHILD_DIRECTORY = "Bases";
-const LEGACY_ROOT_LIBRARY_NOTE_FILE_NAME = "Zotero 论文集.md";
 
 export async function syncItemsToObsidian(items: Zotero.Item[]) {
   await debugLog("syncItemsToObsidian:start", {
@@ -57,7 +56,10 @@ export async function syncItemsToObsidian(items: Zotero.Item[]) {
   const outputDirectory = getOutputDirectory();
   await debugLog("syncItemsToObsidian:output-directory", { outputDirectory });
   if (!outputDirectory) {
-    showProgress("Obsidian vault path is not configured.", "warning");
+    showProgress(
+      "Obsidian vault path or output folder is not configured.",
+      "warning",
+    );
     await debugLog("syncItemsToObsidian:missing-output-directory");
     return { syncedCount: 0 };
   }
@@ -155,15 +157,6 @@ export async function syncItemsToObsidian(items: Zotero.Item[]) {
   await removePathIfExists(legacyTemplateBasesPath);
   await debugLog("syncItemsToObsidian:removed-legacy-template-bases-base", {
     legacyTemplateBasesPath,
-  });
-
-  const legacyLibraryNotePath = joinPath(
-    getPref("vaultPath"),
-    LEGACY_ROOT_LIBRARY_NOTE_FILE_NAME,
-  );
-  await removePathIfExists(legacyLibraryNotePath);
-  await debugLog("syncItemsToObsidian:removed-legacy-library-note", {
-    legacyLibraryNotePath,
   });
 
   if (getPref("createDataviewIndex")) {
@@ -302,10 +295,12 @@ function getOutputDirectory() {
     return "";
   }
 
-  const outputFolder = (
-    getPref("outputFolder") || DEFAULT_OUTPUT_FOLDER
-  ).trim();
-  return outputFolder ? joinPath(vaultPath, outputFolder) : vaultPath;
+  const outputFolder = getPref("outputFolder")?.trim();
+  if (!outputFolder) {
+    return "";
+  }
+
+  return joinPath(vaultPath, outputFolder);
 }
 
 async function readIfExists(path: string) {
