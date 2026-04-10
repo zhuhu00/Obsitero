@@ -39,7 +39,7 @@ describe("obsidian sync", function () {
       Zotero.Prefs.set(`${config.prefsPrefix}.fileNameStrategy`, "title", true);
       Zotero.Prefs.set(
         `${config.prefsPrefix}.selectedFields`,
-        '["authors","publication","tags","zotero_url","link"]',
+        '["authors","publication","tags","zotero_url","link","pdf"]',
         true,
       );
       Zotero.Prefs.set(
@@ -137,8 +137,10 @@ describe("obsidian sync", function () {
       assert.include(baseContents as string, "- note.tags");
       assert.include(baseContents as string, "formulas:");
       assert.include(baseContents as string, 'url_link: \'if(link, link(link, "link"), "")\'');
+      assert.include(baseContents as string, 'pdf_link: \'if(pdf, link(pdf, "pdf"), "")\'');
       assert.include(baseContents as string, 'zotero_link: \'if(zotero_url, link(zotero_url, "zotero"), "")\'');
       assert.include(baseContents as string, "- formula.url_link");
+      assert.include(baseContents as string, "- formula.pdf_link");
       assert.include(baseContents as string, "- formula.zotero_link");
 
       const allMarkdown = await listMarkdownFiles(OUTPUT_DIRECTORY);
@@ -188,6 +190,11 @@ describe("obsidian sync", function () {
         ),
       );
       assert.isTrue(
+        pageContents.some((content) =>
+          (content as string).includes("pdf: "),
+        ),
+      );
+      assert.isTrue(
         pageContents.every(
           (content) =>
             (content as string).indexOf("authors_short:") <
@@ -228,6 +235,10 @@ describe("obsidian sync", function () {
       assert.isString(alphaContent);
       assert.include(alphaContent as string, "## My Notes");
       assert.include(alphaContent as string, "## Zotero Notes");
+      assert.match(
+        alphaContent as string,
+        /^pdf:\s*"file:\/\/.+Test(?:%20| )Paper(?:%20| )Alpha\.pdf"$/m,
+      );
       assert.include(alphaContent as string, "Alpha AI summary");
       assert.include(alphaContent as string, "Alpha comment");
       assert.isTrue(
@@ -339,6 +350,14 @@ async function createFixtureCollection() {
   await itemA.saveTx();
   await logTestStep("createFixtureCollection:item-a-saved", {
     itemID: itemA.id,
+  });
+  const alphaPdfPath = `${VAULT_PATH}/Test Paper Alpha.pdf`;
+  await Zotero.File.putContentsAsync(alphaPdfPath, "%PDF-1.4\n% Obsitero test\n");
+  await Zotero.Attachments.linkFromFile({
+    file: alphaPdfPath,
+    parentItemID: itemA.id,
+    title: "Test Paper Alpha PDF",
+    contentType: "application/pdf",
   });
 
   const aiNote = new Zotero.Item("note");

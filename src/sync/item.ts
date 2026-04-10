@@ -13,6 +13,7 @@ export async function buildSyncItemData(
     year: getItemYear(item),
     publication: getPublicationTitle(item),
     tags: getControlledTags(item),
+    pdf: await getPdfLink(item),
     collections: item
       .getCollections()
       .map((collectionID) => Zotero.Collections.get(collectionID))
@@ -27,6 +28,25 @@ export async function buildSyncItemData(
     dateModified: item.dateModified,
     childNotes: await getChildNotes(item),
   };
+}
+
+async function getPdfLink(item: Zotero.Item) {
+  const attachments = await item.getBestAttachments();
+  const attachment = attachments.find((candidate) => candidate.isPDFAttachment());
+  if (!attachment) {
+    return "";
+  }
+
+  const filePath = await attachment.getFilePathAsync();
+  if (!filePath) {
+    return "";
+  }
+
+  try {
+    return attachment.getLocalFileURL() || "";
+  } catch {
+    return "";
+  }
 }
 
 function getAuthorNames(item: Zotero.Item) {

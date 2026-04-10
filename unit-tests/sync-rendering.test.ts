@@ -24,6 +24,7 @@ describe("sync markdown rendering", function () {
     doi: "10.1000/example",
     url: "https://example.com/paper",
     link: "https://example.com/paper",
+    pdf: "file:///Users/hu/Zotero/storage/ABCD1234/paper.pdf",
     dateAdded: "2026-04-08T10:00:00Z",
     dateModified: "2026-04-08T12:00:00Z",
     childNotes: [],
@@ -96,6 +97,7 @@ describe("sync markdown rendering", function () {
           "tags:",
           '  - "Unread"',
           'link: "https://example.com/paper"',
+          'pdf: "file:///Users/hu/Zotero/storage/ABCD1234/paper.pdf"',
           'zotero_url: "zotero://select/library/items/ABCD1234"',
           "code:",
           "page:",
@@ -122,6 +124,7 @@ describe("sync markdown rendering", function () {
         "authors",
         "publication",
         "tags",
+        "pdf",
         "zotero_url",
         "link",
       ],
@@ -136,6 +139,9 @@ describe("sync markdown rendering", function () {
     assert.ok(markdown.includes('publication: "ICLR"'));
     assert.ok(markdown.includes('  - "Unread"'));
     assert.ok(markdown.includes('link: "https://example.com/paper"'));
+    assert.ok(
+      markdown.includes('pdf: "file:///Users/hu/Zotero/storage/ABCD1234/paper.pdf"'),
+    );
   });
 
   it("includes a short author list for index rendering and maps tags", function () {
@@ -198,6 +204,7 @@ describe("sync markdown rendering", function () {
       "tags:",
       '  - "Done"',
       'link: "https://local.example.com/paper"',
+      'pdf: "file:///Users/hu/Zotero/storage/LOCAL1234/local.pdf"',
       'zotero_url: "zotero://select/library/items/LOCAL1234"',
       'code: "https://github.com/example/project"',
       'page: "https://project.example.com"',
@@ -224,6 +231,9 @@ describe("sync markdown rendering", function () {
     assert.ok(markdown.includes('publication: "CVPR2026"'));
     assert.ok(markdown.includes('  - "Done"'));
     assert.ok(markdown.includes('link: "https://local.example.com/paper"'));
+    assert.ok(
+      markdown.includes('pdf: "file:///Users/hu/Zotero/storage/ABCD1234/paper.pdf"'),
+    );
     assert.ok(
       markdown.includes(
         'zotero_url: "zotero://select/library/items/LOCAL1234"',
@@ -295,6 +305,7 @@ describe("sync markdown rendering", function () {
         "formulas:",
         '  title_link: \'if(file.name, link(file.name, display_title), "")\'',
         '  url_link: \'if(link, link(link, "link"), "")\'',
+        '  pdf_link: \'if(pdf, link(pdf, "pdf"), "")\'',
         '  zotero_link: \'if(zotero_url, link(zotero_url, "zotero"), "")\'',
         "properties:",
         "  formula.title_link:",
@@ -307,6 +318,8 @@ describe("sync markdown rendering", function () {
         '    displayName: "Tags"',
         "  formula.url_link:",
         '    displayName: "Url"',
+        "  formula.pdf_link:",
+        '    displayName: "Pdf"',
         "  formula.zotero_link:",
         '    displayName: "Zotero"',
         "  code:",
@@ -322,6 +335,7 @@ describe("sync markdown rendering", function () {
         "      - note.publication",
         "      - note.tags",
         "      - formula.url_link",
+        "      - formula.pdf_link",
         "      - formula.zotero_link",
         "      - note.code",
         "      - note.page",

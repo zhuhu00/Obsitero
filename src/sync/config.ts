@@ -23,6 +23,13 @@ export const FILE_NAME_STRATEGIES: FileNameStrategy[] = [
 export const DEFAULT_OUTPUT_FOLDER = "Zotero";
 
 export const DEFAULT_FILE_NAME_STRATEGY: FileNameStrategy = "title";
+const LEGACY_DEFAULT_SYNC_FIELDS: SyncField[] = [
+  "authors",
+  "publication",
+  "tags",
+  "link",
+  "zotero_url",
+];
 
 export function loadSelectedFields(): SyncField[] {
   const raw = Zotero.Prefs.get(
@@ -42,7 +49,13 @@ export function loadSelectedFields(): SyncField[] {
     const selected = parsed
       .map(normalizeField)
       .filter((field): field is SyncField => Boolean(field));
-    return selected.length ? selected : [...DEFAULT_SYNC_FIELDS];
+    if (!selected.length) {
+      return [...DEFAULT_SYNC_FIELDS];
+    }
+    if (isLegacyDefaultFieldSelection(selected)) {
+      return [...DEFAULT_SYNC_FIELDS];
+    }
+    return selected;
   } catch {
     return [...DEFAULT_SYNC_FIELDS];
   }
@@ -131,4 +144,12 @@ function normalizeField(value: unknown): SyncField | undefined {
     return "link";
   }
   return isSyncField(value) ? value : undefined;
+}
+
+function isLegacyDefaultFieldSelection(fields: SyncField[]) {
+  if (fields.length !== LEGACY_DEFAULT_SYNC_FIELDS.length) {
+    return false;
+  }
+
+  return LEGACY_DEFAULT_SYNC_FIELDS.every((field, index) => fields[index] === field);
 }

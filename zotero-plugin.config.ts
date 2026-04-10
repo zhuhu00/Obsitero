@@ -78,6 +78,7 @@ export default defineConfig({
         "tags",
         "zotero_url",
         "link",
+        "pdf",
       ]),
     },
   },

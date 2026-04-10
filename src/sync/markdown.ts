@@ -4,6 +4,7 @@ export type SyncField =
   | "year"
   | "publication"
   | "tags"
+  | "pdf"
   | "code"
   | "page"
   | "collections"
@@ -27,6 +28,7 @@ export interface SyncItemData {
   year?: string;
   publication?: string;
   tags?: string[];
+  pdf?: string;
   code?: string;
   page?: string;
   collections?: string[];
@@ -61,6 +63,7 @@ export const DEFAULT_SYNC_FIELDS: SyncField[] = [
   "publication",
   "tags",
   "link",
+  "pdf",
   "zotero_url",
 ];
 
@@ -70,6 +73,7 @@ export const ALL_SYNC_FIELDS: SyncField[] = [
   "year",
   "publication",
   "tags",
+  "pdf",
   "code",
   "page",
   "collections",
@@ -91,6 +95,7 @@ const PRIMARY_FIELD_ORDER: SyncField[] = [
   "publication",
   "tags",
   "link",
+  "pdf",
   "zotero_url",
 ];
 const SECONDARY_FIELD_ORDER: SyncField[] = [
@@ -172,6 +177,7 @@ export function buildBasesFile({
     "formulas:",
     `  title_link: '${buildLinkFormula("file.name", "display_title", true)}'`,
     `  url_link: '${buildLinkFormula("link", "link")}'`,
+    `  pdf_link: '${buildLinkFormula("pdf", "pdf")}'`,
     `  zotero_link: '${buildLinkFormula("zotero_url", "zotero")}'`,
     "properties:",
     "  formula.title_link:",
@@ -184,6 +190,8 @@ export function buildBasesFile({
     '    displayName: "Tags"',
     "  formula.url_link:",
     '    displayName: "Url"',
+    "  formula.pdf_link:",
+    '    displayName: "Pdf"',
     "  formula.zotero_link:",
     '    displayName: "Zotero"',
     "  code:",
@@ -196,11 +204,12 @@ export function buildBasesFile({
     "    order:",
     "      - formula.title_link",
     "      - note.authors_short",
-    "      - note.publication",
-    "      - note.tags",
-    "      - formula.url_link",
-    "      - formula.zotero_link",
-    "      - note.code",
+      "      - note.publication",
+      "      - note.tags",
+      "      - formula.url_link",
+      "      - formula.pdf_link",
+      "      - formula.zotero_link",
+      "      - note.code",
     "      - note.page",
     "    sort:",
     "      - property: note.last_synced_at",
@@ -330,6 +339,8 @@ function getFieldValue(
       return (
         item.tags ?? extractExistingArrayField(existingContent, "tags").value
       );
+    case "pdf":
+      return item.pdf ?? "";
     case "code":
       return extractExistingScalarField(existingContent, "code").value;
     case "page":
