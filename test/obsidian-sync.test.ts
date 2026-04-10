@@ -5,7 +5,13 @@ import { pathExists, readTextIfExists } from "../src/utils/filesystem";
 const VAULT_PATH = "/tmp/obsitero-test-vault";
 const OUTPUT_FOLDER = "Zotero-dev-test";
 const OUTPUT_DIRECTORY = `${VAULT_PATH}/${OUTPUT_FOLDER}`;
-const INDEX_PATH = `${OUTPUT_DIRECTORY}/_Index.md`;
+const BASE_PATH = `${OUTPUT_DIRECTORY}/Zotero.base`;
+const LEGACY_ROOT_BASE_PATH = `${VAULT_PATH}/Zotero.base`;
+const LEGACY_BASES_PATH = `${VAULT_PATH}/Bases/Zotero.base`;
+const LEGACY_TEMPLATE_BASES_PATH = `${VAULT_PATH}/Templates/Bases/Zotero.base`;
+const LEGACY_SPACED_LIBRARY_NOTE_PATH = `${VAULT_PATH}/Zotero 论文集.md`;
+const LIBRARY_NOTE_PATH = `${VAULT_PATH}/Zotero论文集.md`;
+const LEGACY_INDEX_PATH = `${OUTPUT_DIRECTORY}/_Index.md`;
 const TEST_LOG_PATH = "/tmp/obsidian-sync-test.log";
 
 describe("obsidian sync", function () {
@@ -44,8 +50,29 @@ describe("obsidian sync", function () {
       await logTestStep("prefs-set");
 
       await Zotero.File.createDirectoryIfMissingAsync(VAULT_PATH);
-      await Zotero.File.removeIfExists(INDEX_PATH);
+      await Zotero.File.removeIfExists(BASE_PATH);
+      await Zotero.File.removeIfExists(LEGACY_ROOT_BASE_PATH);
+      await Zotero.File.removeIfExists(LEGACY_BASES_PATH);
+      await Zotero.File.removeIfExists(LEGACY_TEMPLATE_BASES_PATH);
+      await Zotero.File.removeIfExists(LEGACY_SPACED_LIBRARY_NOTE_PATH);
+      await Zotero.File.removeIfExists(LIBRARY_NOTE_PATH);
       await removeMarkdownFilesInDirectory(OUTPUT_DIRECTORY);
+      await Zotero.File.putContentsAsync(LEGACY_INDEX_PATH, "legacy");
+      await Zotero.File.putContentsAsync(LEGACY_ROOT_BASE_PATH, "legacy-root-base");
+      await Zotero.File.createDirectoryIfMissingAsync(`${VAULT_PATH}/Templates`);
+      await Zotero.File.createDirectoryIfMissingAsync(`${VAULT_PATH}/Templates/Bases`);
+      await Zotero.File.putContentsAsync(
+        LEGACY_TEMPLATE_BASES_PATH,
+        "legacy-template-base",
+      );
+      await Zotero.File.putContentsAsync(
+        LEGACY_SPACED_LIBRARY_NOTE_PATH,
+        "![[Zotero.base]]\n",
+      );
+      await Zotero.File.putContentsAsync(
+        LIBRARY_NOTE_PATH,
+        "![[Zotero/Zotero.base]]\n",
+      );
       await logTestStep("output-cleared");
 
       // @ts-expect-error plugin instance is attached dynamically
@@ -57,33 +84,62 @@ describe("obsidian sync", function () {
       await plugin.api.syncItemsByIDs(itemIDs);
       await logTestStep("sync-finished");
 
-      assert.isTrue(await pathExists(INDEX_PATH), "index file missing");
-      const indexContents = await Zotero.File.getContentsAsync(INDEX_PATH);
-      assert.isString(indexContents);
-      assert.include(indexContents as string, "cssclasses:");
-      assert.include(indexContents as string, '  - "zotero-index"');
-      assert.include(indexContents as string, '  - "wide"');
-      assert.include(indexContents as string, '  - "table-lines"');
-      assert.include(indexContents as string, '  - "row-alt"');
-      assert.include(indexContents as string, "```dataview");
-      assert.include(indexContents as string, 'FROM "Zotero-dev-test"');
-      assert.include(indexContents as string, "TABLE WITHOUT ID");
-      assert.include(
-        indexContents as string,
-        "link(file.path, display_title) AS Title",
+      assert.isTrue(await pathExists(BASE_PATH), "base file missing");
+      assert.isFalse(
+        await pathExists(LEGACY_ROOT_BASE_PATH),
+        "legacy root base remained",
       );
-      assert.include(indexContents as string, "authors_short AS Authors");
-      assert.include(indexContents as string, "publication AS Publication");
-      assert.include(indexContents as string, "tags AS Tags");
-      assert.include(
-        indexContents as string,
-        'choice(link, "[link](" + link + ")", "") AS Url',
+      assert.isFalse(
+        await pathExists(LEGACY_BASES_PATH),
+        "legacy bases folder base remained",
       );
-      assert.include(indexContents as string, "SORT last_synced_at DESC");
+      assert.isFalse(
+        await pathExists(LEGACY_TEMPLATE_BASES_PATH),
+        "legacy template bases base remained",
+      );
+      assert.isFalse(
+        await pathExists(LEGACY_SPACED_LIBRARY_NOTE_PATH),
+        "legacy spaced library note remained",
+      );
+      assert.isTrue(
+        await pathExists(LIBRARY_NOTE_PATH),
+        "manual library note should be preserved",
+      );
+      assert.equal(
+        await readTextIfExists(LIBRARY_NOTE_PATH),
+        "![[Zotero/Zotero.base]]\n",
+      );
+      assert.isFalse(await pathExists(LEGACY_INDEX_PATH), "legacy index remained");
+      const baseContents = await Zotero.File.getContentsAsync(BASE_PATH);
+      assert.isString(baseContents);
+      assert.include(baseContents as string, "filters:");
+      assert.include(baseContents as string, `- 'file.inFolder(\"${OUTPUT_FOLDER}\")'`);
+      assert.include(baseContents as string, '- \'file.ext == "md"\'');
+      assert.include(baseContents as string, "properties:");
+      assert.include(baseContents as string, "formula.title_link:");
+      assert.include(baseContents as string, 'displayName: "Title"');
+      assert.include(baseContents as string, "authors_short:");
+      assert.include(baseContents as string, 'displayName: "Authors"');
+      assert.include(baseContents as string, "views:");
+      assert.include(baseContents as string, '- type: table');
+      assert.include(baseContents as string, 'name: "Library"');
+      assert.include(
+        baseContents as string,
+        'title_link: \'if(file.name, link(file.name, display_title), "")\'',
+      );
+      assert.include(baseContents as string, "- formula.title_link");
+      assert.include(baseContents as string, "- note.authors_short");
+      assert.include(baseContents as string, "- note.publication");
+      assert.include(baseContents as string, "- note.tags");
+      assert.include(baseContents as string, "formulas:");
+      assert.include(baseContents as string, 'url_link: \'if(link, link(link, "link"), "")\'');
+      assert.include(baseContents as string, 'zotero_link: \'if(zotero_url, link(zotero_url, "zotero"), "")\'');
+      assert.include(baseContents as string, "- formula.url_link");
+      assert.include(baseContents as string, "- formula.zotero_link");
 
       const allMarkdown = await listMarkdownFiles(OUTPUT_DIRECTORY);
       const syncedPages = allMarkdown.filter(
-        (path) => !path.endsWith("/_Index.md"),
+        (path) => !path.endsWith("/_Index.md") && !path.endsWith("/Zotero.base"),
       );
       assert.lengthOf(syncedPages, items.length);
       assert.includeMembers(syncedPages, [

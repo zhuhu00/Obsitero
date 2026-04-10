@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   DEFAULT_SYNC_FIELDS,
-  buildDataviewIndex,
+  buildBasesFile,
   renderSyncedMarkdown,
   resolveMarkdownFilename,
   resolveUniqueMarkdownFilename,
@@ -280,37 +280,54 @@ describe("sync markdown rendering", function () {
     assert.match(markdown, /\n## My Notes\n\n$/);
   });
 
-  it("renders a Dataview index page for the configured output folder", function () {
-    const index = buildDataviewIndex({
+  it("renders a Bases file for the configured output folder", function () {
+    const index = buildBasesFile({
       outputFolder: "Zotero",
-      visibleColumns: [
-        "link(file.path, display_title) AS Title",
-        "authors_short AS Authors",
-        "publication AS Publication",
-        "tags AS Tags",
-        'choice(link, "[link](" + link + ")", "") AS Url',
-      ],
     });
 
     assert.equal(
       index,
       [
-        "---",
-        "cssclasses:",
-        '  - "zotero-index"',
-        '  - "wide"',
-        '  - "table-lines"',
-        '  - "row-alt"',
-        "---",
-        "",
-        "# Zotero Library",
-        "",
-        "```dataview",
-        'TABLE WITHOUT ID link(file.path, display_title) AS Title, authors_short AS Authors, publication AS Publication, tags AS Tags, choice(link, "[link](" + link + ")", "") AS Url',
-        'FROM "Zotero"',
-        "SORT last_synced_at DESC",
-        "```",
-        "",
+        "filters:",
+        "  and:",
+        '    - \'file.inFolder("Zotero")\'',
+        '    - \'file.ext == "md"\'',
+        "formulas:",
+        '  title_link: \'if(file.name, link(file.name, display_title), "")\'',
+        '  url_link: \'if(link, link(link, "link"), "")\'',
+        '  zotero_link: \'if(zotero_url, link(zotero_url, "zotero"), "")\'',
+        "properties:",
+        "  formula.title_link:",
+        '    displayName: "Title"',
+        "  authors_short:",
+        '    displayName: "Authors"',
+        "  publication:",
+        '    displayName: "Publication"',
+        "  tags:",
+        '    displayName: "Tags"',
+        "  formula.url_link:",
+        '    displayName: "Url"',
+        "  formula.zotero_link:",
+        '    displayName: "Zotero"',
+        "  code:",
+        '    displayName: "Code"',
+        "  page:",
+        '    displayName: "Page"',
+        "views:",
+        '  - type: table',
+        '    name: "Library"',
+        "    order:",
+        "      - formula.title_link",
+        "      - note.authors_short",
+        "      - note.publication",
+        "      - note.tags",
+        "      - formula.url_link",
+        "      - formula.zotero_link",
+        "      - note.code",
+        "      - note.page",
+        "    sort:",
+        "      - property: note.last_synced_at",
+        "        direction: DESC",
       ].join("\n"),
     );
   });

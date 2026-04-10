@@ -1,4 +1,6 @@
 import { defineConfig } from "zotero-plugin-scaffold";
+import { copyFile } from "node:fs/promises";
+import { join } from "node:path";
 import pkg from "./package.json";
 
 export default defineConfig({
@@ -25,6 +27,27 @@ export default defineConfig({
     },
     prefs: {
       prefix: pkg.config.prefsPrefix,
+    },
+    hooks: {
+      async "build:fluent"(ctx) {
+        const localeRoots = ["en-US", "zh-CN"];
+        await Promise.all(
+          localeRoots.map(async (locale) => {
+            const localeDir = join(ctx.dist, "addon", "locale", locale);
+            const aliases: Array<[string, string]> = [
+              [`${pkg.config.addonRef}-preferences.ftl`, "preferences.ftl"],
+            ];
+            await Promise.all(
+              aliases.map(async ([sourceName, targetName]) => {
+                await copyFile(
+                  join(localeDir, sourceName),
+                  join(localeDir, targetName),
+                );
+              }),
+            );
+          }),
+        );
+      },
     },
     esbuildOptions: [
       {

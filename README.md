@@ -5,14 +5,14 @@
 
 Obsitero is a Zotero plugin for a Notero-style Obsidian workflow.
 
-It syncs each Zotero parent item into one Obsidian markdown file, keeps your local reading notes intact, and generates a Dataview index page so your library behaves more like a browsable database inside Obsidian.
+It syncs each Zotero parent item into one Obsidian markdown file, keeps your local reading notes intact, and generates a `Zotero.base` file inside your configured Zotero folder so your papers can be browsed with Obsidian's native Bases views.
 
 ## Features
 
 - One Zotero parent item syncs to one Obsidian markdown file
 - Uses Zotero item `Notes` child notes and appends them into the same markdown file
 - Preserves `## My Notes` during resync
-- Generates a Dataview `_Index.md` page for table-style browsing in Obsidian
+- Generates `Zotero.base` inside your configured Obsidian output folder
 - Supports collection-based auto-sync and manual sync from Zotero context menus
 - Uses title-based filenames with safe sanitization for cross-platform compatibility
 
@@ -79,7 +79,7 @@ Obsitero adds a preference pane in Zotero where you can configure:
 - Output folder inside the vault
 - Whether monitored collections auto-sync on item changes
 - Filename strategy
-- Whether `_Index.md` should be generated
+- Whether `Zotero.base` should be generated
 - Which collections are monitored
 - Which fields are initialized into frontmatter
 
@@ -143,16 +143,29 @@ Current auto-sync does not yet fully cover:
 
 - Sync is one-way: Zotero -> Obsidian
 - PDF annotations are not yet synced directly
-- The Dataview index depends on Obsidian plus the Dataview plugin
+- The library view depends on Obsidian Bases support
 - Styling shown in screenshots/workflows may depend on your Obsidian theme and snippets
 
 ## Recommended Obsidian Setup
 
 Obsitero works best when combined with:
 
-- [Dataview](https://github.com/blacksmithgu/obsidian-dataview) for `_Index.md`
+- Obsidian Bases for native library browsing
 - an Obsidian theme you like for database-style browsing
-- optional CSS snippets for paper-property and index styling
+- optional CSS snippets for paper-property styling
+
+Generated sync output is organized like this:
+
+- `Zotero/Zotero.base`
+- `Zotero/<paper title>.md`
+
+Obsitero does not generate a root dashboard note for you. If you want a vault-level entry page, create it yourself and embed the generated base:
+
+```md
+![[Zotero.base]]
+```
+
+This keeps the plugin focused on sync output only, while letting you style and organize your own entry pages however you want.
 
 ## Development
 

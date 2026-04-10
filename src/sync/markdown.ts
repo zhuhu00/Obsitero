@@ -52,9 +52,8 @@ export interface RenderSyncedMarkdownOptions {
   syncedAt?: string;
 }
 
-export interface DataviewIndexOptions {
+export interface BasesFileOptions {
   outputFolder: string;
-  visibleColumns: string[];
 }
 
 export const DEFAULT_SYNC_FIELDS: SyncField[] = [
@@ -87,7 +86,6 @@ const LAST_SYNC_FIELD = "last_synced_at";
 const DISPLAY_TITLE_FIELD = "display_title";
 const AUTHORS_SHORT_FIELD = "authors_short";
 const NOTE_CSS_CLASSES = ["zotero-paper"];
-const INDEX_CSS_CLASSES = ["zotero-index", "wide", "table-lines", "row-alt"];
 const PRIMARY_FIELD_ORDER: SyncField[] = [
   "authors",
   "publication",
@@ -163,24 +161,50 @@ export function renderSyncedMarkdown({
   ].join("\n");
 }
 
-export function buildDataviewIndex({
+export function buildBasesFile({
   outputFolder,
-  visibleColumns,
-}: DataviewIndexOptions): string {
+}: BasesFileOptions): string {
   return [
-    "---",
-    "cssclasses:",
-    ...INDEX_CSS_CLASSES.map((cssClass) => `  - ${escapeYaml(cssClass)}`),
-    "---",
-    "",
-    "# Zotero Library",
-    "",
-    "```dataview",
-    `TABLE WITHOUT ID ${visibleColumns.join(", ")}`,
-    `FROM "${outputFolder}"`,
-    `SORT ${LAST_SYNC_FIELD} DESC`,
-    "```",
-    "",
+    "filters:",
+    "  and:",
+    `    - 'file.inFolder("${escapeForSingleQuotedBaseString(outputFolder)}")'`,
+    '    - \'file.ext == "md"\'',
+    "formulas:",
+    `  title_link: '${buildLinkFormula("file.name", "display_title", true)}'`,
+    `  url_link: '${buildLinkFormula("link", "link")}'`,
+    `  zotero_link: '${buildLinkFormula("zotero_url", "zotero")}'`,
+    "properties:",
+    "  formula.title_link:",
+    '    displayName: "Title"',
+    "  authors_short:",
+    '    displayName: "Authors"',
+    "  publication:",
+    '    displayName: "Publication"',
+    "  tags:",
+    '    displayName: "Tags"',
+    "  formula.url_link:",
+    '    displayName: "Url"',
+    "  formula.zotero_link:",
+    '    displayName: "Zotero"',
+    "  code:",
+    '    displayName: "Code"',
+    "  page:",
+    '    displayName: "Page"',
+    "views:",
+    '  - type: table',
+    '    name: "Library"',
+    "    order:",
+    "      - formula.title_link",
+    "      - note.authors_short",
+    "      - note.publication",
+    "      - note.tags",
+    "      - formula.url_link",
+    "      - formula.zotero_link",
+    "      - note.code",
+    "      - note.page",
+    "    sort:",
+    "      - property: note.last_synced_at",
+    "        direction: DESC",
   ].join("\n");
 }
 
@@ -215,6 +239,15 @@ function renderFrontmatter(
 
   lines.push("---");
   return lines.join("\n");
+}
+
+function buildLinkFormula(field: string, label: string, labelIsExpression = false) {
+  const renderedLabel = labelIsExpression ? label : `"${label}"`;
+  return `if(${field}, link(${field}, ${renderedLabel}), "")`;
+}
+
+function escapeForSingleQuotedBaseString(value: string) {
+  return value.replace(/'/g, "''");
 }
 
 function renderOrderedFields(

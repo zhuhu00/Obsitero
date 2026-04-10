@@ -7,6 +7,6 @@ pref-sync-help = Enable the collections that should auto-sync to Obsidian.
 pref-sync-on-modify = Sync when monitored items change
 pref-page-title = Page
 pref-file-name-strategy = File name strategy
-pref-create-index = Create Dataview index page
+pref-create-index = Create Obsidian Bases library files
 pref-fields-title = Frontmatter Fields
 pref-help = { $name } Build { $version } { $time }

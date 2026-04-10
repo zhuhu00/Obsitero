@@ -7,7 +7,7 @@ import {
   loadSyncedCollectionIDs,
 } from "./config";
 import {
-  buildDataviewIndex,
+  buildBasesFile,
   renderSyncedMarkdown,
   resolveUniqueMarkdownFilename,
   type FileNameStrategy,
@@ -17,6 +17,12 @@ import { getPref } from "../utils/prefs";
 import { joinPath, readTextIfExists } from "../utils/filesystem";
 
 const DEBUG_LOG_PATH = "/tmp/obsitero-debug.log";
+const LEGACY_INDEX_FILE_NAME = "_Index.md";
+const BASES_FILE_NAME = "Zotero.base";
+const LEGACY_BASES_DIRECTORY = "Bases";
+const LEGACY_TEMPLATE_BASES_PARENT_DIRECTORY = "Templates";
+const LEGACY_TEMPLATE_BASES_CHILD_DIRECTORY = "Bases";
+const LEGACY_ROOT_LIBRARY_NOTE_FILE_NAME = "Zotero 论文集.md";
 
 export async function syncItemsToObsidian(items: Zotero.Item[]) {
   await debugLog("syncItemsToObsidian:start", {
@@ -79,7 +85,7 @@ export async function syncItemsToObsidian(items: Zotero.Item[]) {
     existingNames: Array.from(existingFiles.names),
   });
   const usedFileNames = new Set(existingFiles.names);
-  usedFileNames.delete("_Index.md");
+  usedFileNames.delete(LEGACY_INDEX_FILE_NAME);
 
   for (const item of validItems) {
     await debugLog("syncItemsToObsidian:building-item-data", {
@@ -118,20 +124,55 @@ export async function syncItemsToObsidian(items: Zotero.Item[]) {
     await Zotero.File.putContentsAsync(filePath, content);
   }
 
+  const legacyIndexPath = joinPath(outputDirectory, LEGACY_INDEX_FILE_NAME);
+  await removePathIfExists(legacyIndexPath);
+  await debugLog("syncItemsToObsidian:removed-legacy-index", {
+    legacyIndexPath,
+  });
+
+  const legacyRootBasePath = joinPath(getPref("vaultPath"), BASES_FILE_NAME);
+  await removePathIfExists(legacyRootBasePath);
+  await debugLog("syncItemsToObsidian:removed-legacy-root-base", {
+    legacyRootBasePath,
+  });
+
+  const legacyBasesPath = joinPath(
+    getPref("vaultPath"),
+    LEGACY_BASES_DIRECTORY,
+    BASES_FILE_NAME,
+  );
+  await removePathIfExists(legacyBasesPath);
+  await debugLog("syncItemsToObsidian:removed-legacy-bases-base", {
+    legacyBasesPath,
+  });
+
+  const legacyTemplateBasesPath = joinPath(
+    getPref("vaultPath"),
+    LEGACY_TEMPLATE_BASES_PARENT_DIRECTORY,
+    LEGACY_TEMPLATE_BASES_CHILD_DIRECTORY,
+    BASES_FILE_NAME,
+  );
+  await removePathIfExists(legacyTemplateBasesPath);
+  await debugLog("syncItemsToObsidian:removed-legacy-template-bases-base", {
+    legacyTemplateBasesPath,
+  });
+
+  const legacyLibraryNotePath = joinPath(
+    getPref("vaultPath"),
+    LEGACY_ROOT_LIBRARY_NOTE_FILE_NAME,
+  );
+  await removePathIfExists(legacyLibraryNotePath);
+  await debugLog("syncItemsToObsidian:removed-legacy-library-note", {
+    legacyLibraryNotePath,
+  });
+
   if (getPref("createDataviewIndex")) {
-    const indexPath = joinPath(outputDirectory, "_Index.md");
-    const indexContent = buildDataviewIndex({
+    const basePath = joinPath(outputDirectory, BASES_FILE_NAME);
+    const baseContent = buildBasesFile({
       outputFolder: getPref("outputFolder") || DEFAULT_OUTPUT_FOLDER,
-      visibleColumns: [
-        "link(file.path, display_title) AS Title",
-        "authors_short AS Authors",
-        "publication AS Publication",
-        "tags AS Tags",
-        'choice(link, "[link](" + link + ")", "") AS Url',
-      ],
     });
-    await Zotero.File.putContentsAsync(indexPath, indexContent);
-    await debugLog("syncItemsToObsidian:wrote-index", { indexPath });
+    await Zotero.File.putContentsAsync(basePath, baseContent);
+    await debugLog("syncItemsToObsidian:wrote-base-file", { basePath });
   }
 
   showProgress(
@@ -269,6 +310,14 @@ function getOutputDirectory() {
 
 async function readIfExists(path: string) {
   return readTextIfExists(path);
+}
+
+async function removePathIfExists(path: string) {
+  try {
+    await Zotero.File.removeIfExists(path);
+  } catch {
+    // Legacy cleanup should never block the current sync flow.
+  }
 }
 
 async function listExistingMarkdownFiles(directory: string) {
