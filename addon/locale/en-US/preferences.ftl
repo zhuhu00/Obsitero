@@ -9,4 +9,6 @@ pref-page-title = Page
 pref-file-name-strategy = File name strategy
 pref-create-index = Create Obsidian Bases library files
 pref-fields-title = Frontmatter Fields
+pref-save = Save settings
+pref-save-success = Obsitero settings saved
 pref-help = { $name } Build { $version } { $time }

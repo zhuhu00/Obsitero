@@ -9,4 +9,6 @@ pref-page-title = 页面
 pref-file-name-strategy = 文件命名策略
 pref-create-index = 生成 Obsidian Bases 库文件
 pref-fields-title = Frontmatter 字段
+pref-save = 保存设置
+pref-save-success = Obsitero 设置已保存
 pref-help = { $name } Build { $version } { $time }

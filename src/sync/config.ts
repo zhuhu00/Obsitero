@@ -1,3 +1,4 @@
+import { config } from "../../package.json";
 import {
   ALL_SYNC_FIELDS,
   DEFAULT_SYNC_FIELDS,
@@ -33,7 +34,7 @@ const LEGACY_DEFAULT_SYNC_FIELDS: SyncField[] = [
 
 export function loadSelectedFields(): SyncField[] {
   const raw = Zotero.Prefs.get(
-    `${addon.data.config.prefsPrefix}.selectedFields`,
+    `${config.prefsPrefix}.selectedFields`,
     true,
   );
 
@@ -62,16 +63,17 @@ export function loadSelectedFields(): SyncField[] {
 }
 
 export function saveSelectedFields(fields: SyncField[]) {
+  const persistedFields = fields.length ? fields : DEFAULT_SYNC_FIELDS;
   return Zotero.Prefs.set(
-    `${addon.data.config.prefsPrefix}.selectedFields`,
-    JSON.stringify(fields),
+    `${config.prefsPrefix}.selectedFields`,
+    JSON.stringify(persistedFields),
     true,
   );
 }
 
 export function loadCollectionSyncConfigs(): CollectionSyncConfigs {
   const raw = Zotero.Prefs.get(
-    `${addon.data.config.prefsPrefix}.collectionSyncConfigs`,
+    `${config.prefsPrefix}.collectionSyncConfigs`,
     true,
   );
 
@@ -113,7 +115,7 @@ export function loadCollectionSyncConfigs(): CollectionSyncConfigs {
 
 export function saveCollectionSyncConfigs(configs: CollectionSyncConfigs) {
   return Zotero.Prefs.set(
-    `${addon.data.config.prefsPrefix}.collectionSyncConfigs`,
+    `${config.prefsPrefix}.collectionSyncConfigs`,
     JSON.stringify(configs),
     true,
   );

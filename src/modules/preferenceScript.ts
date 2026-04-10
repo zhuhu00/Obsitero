@@ -4,6 +4,7 @@ import {
   getAllCollections,
 } from "../sync/collections";
 import {
+  type CollectionSyncConfigs,
   FILE_NAME_STRATEGIES,
   SYNCABLE_FIELDS,
   isSyncField,
@@ -13,6 +14,7 @@ import {
   saveSelectedFields,
 } from "../sync/config";
 import { getPref, setPref } from "../utils/prefs";
+import { getString } from "../utils/locale";
 
 export async function registerPrefsScripts(window: Window) {
   addon.data.prefs = { window };
@@ -43,15 +45,15 @@ function renderFieldCheckboxes(document: Document) {
   container.replaceChildren();
 
   for (const field of SYNCABLE_FIELDS) {
-    const label = document.createElement("label");
+    const label = createHTMLElement(document, "label");
     label.className = "checkbox-row";
 
-    const checkbox = document.createElement("input");
+    const checkbox = createHTMLElement(document, "input");
     checkbox.type = "checkbox";
     checkbox.checked = selectedFields.has(field);
     checkbox.dataset.field = field;
 
-    const text = document.createElement("span");
+    const text = createHTMLElement(document, "span");
     text.textContent = field;
 
     label.append(checkbox, text);
@@ -65,15 +67,15 @@ function renderCollectionCheckboxes(document: Document) {
   container.replaceChildren();
 
   for (const collection of getAllCollections()) {
-    const row = document.createElement("label");
+    const row = createHTMLElement(document, "label");
     row.className = "checkbox-row";
 
-    const checkbox = document.createElement("input");
+    const checkbox = createHTMLElement(document, "input");
     checkbox.type = "checkbox";
     checkbox.checked = Boolean(configs[collection.id]?.syncEnabled);
     checkbox.dataset.collectionId = String(collection.id);
 
-    const text = document.createElement("span");
+    const text = createHTMLElement(document, "span");
     text.textContent = buildCollectionFullName(collection);
 
     row.append(checkbox, text);
@@ -83,10 +85,6 @@ function renderCollectionCheckboxes(document: Document) {
 
 function bindPrefEvents(window: Window) {
   const { document } = window;
-
-  getInput(document, "vault-path").onchange = (event) => {
-    setPref("vaultPath", (event.target as HTMLInputElement).value.trim());
-  };
 
   getButton(document, "vault-browse").onclick = async () => {
     const selectedPath = await new ztoolkit.FilePicker(
@@ -100,76 +98,79 @@ function bindPrefEvents(window: Window) {
 
     const input = getInput(document, "vault-path");
     input.value = selectedPath;
-    setPref("vaultPath", selectedPath);
   };
 
-  getInput(document, "output-folder").onchange = (event) => {
-    setPref("outputFolder", (event.target as HTMLInputElement).value.trim());
-  };
-
-  getCheckbox(document, "sync-on-modify").onchange = (event) => {
-    setPref("syncOnModify", (event.target as HTMLInputElement).checked);
-  };
-
-  getCheckbox(document, "create-index").onchange = (event) => {
-    setPref("createDataviewIndex", (event.target as HTMLInputElement).checked);
-  };
-
-  getSelect(document, "file-name-strategy").onchange = (event) => {
-    setPref(
-      "fileNameStrategy",
-      (event.target as HTMLSelectElement).value as
-        | "title"
-        | "citationKey"
-        | "itemKey"
-        | "authorYearTitle",
-    );
-  };
-
-  getContainer(document, "fields-container").onchange = () => {
-    const selectedFields = Array.from(
-      getContainer(document, "fields-container").querySelectorAll(
-        "input[type='checkbox'][data-field]:checked",
-      ),
-    )
-      .filter(
-        (input): input is HTMLInputElement => input instanceof HTMLInputElement,
-      )
-      .map((input) => input.dataset.field!)
-      .filter(isSyncField);
-    saveSelectedFields(selectedFields);
-  };
-
-  getContainer(document, "collections-container").onchange = () => {
-    const configs = loadCollectionSyncConfigs();
-
-    for (const input of Array.from(
-      getContainer(document, "collections-container").querySelectorAll(
-        "input[type='checkbox'][data-collection-id]",
-      ),
-    ).filter(
-      (element): element is HTMLInputElement =>
-        element instanceof HTMLInputElement,
-    )) {
-      const collectionID = Number(input.dataset.collectionId);
-      if (collectionID > 0) {
-        configs[collectionID] = { syncEnabled: input.checked };
-      }
-    }
-
-    saveCollectionSyncConfigs(configs);
+  getButton(document, "save").onclick = () => {
+    savePreferences(document);
+    showSaveSuccess();
   };
 
   const fileNameSelect = getSelect(document, "file-name-strategy");
   fileNameSelect.replaceChildren(
     ...FILE_NAME_STRATEGIES.map((strategy) => {
-      const option = document.createElement("option");
+      const option = createHTMLElement(document, "option");
       option.value = strategy;
       option.textContent = strategy;
       return option;
     }),
   );
   fileNameSelect.value = getPref("fileNameStrategy") || "title";
+}
+
+export function savePreferences(document: Document) {
+  setPref("vaultPath", getInput(document, "vault-path").value.trim());
+  setPref("outputFolder", getInput(document, "output-folder").value.trim());
+  setPref("syncOnModify", getCheckbox(document, "sync-on-modify").checked);
+  setPref("createDataviewIndex", getCheckbox(document, "create-index").checked);
+  setPref(
+    "fileNameStrategy",
+    getSelect(document, "file-name-strategy").value as
+      | "title"
+      | "citationKey"
+      | "itemKey"
+      | "authorYearTitle",
+  );
+  saveSelectedFields(readSelectedFields(document));
+  saveCollectionSyncConfigs(readCollectionSyncConfigs(document));
+}
+
+function readSelectedFields(document: Document) {
+  return (
+    Array.from(
+      getContainer(document, "fields-container").querySelectorAll(
+        "input[type='checkbox'][data-field]:checked",
+      ),
+    ) as HTMLInputElement[]
+  )
+    .map((input) => input.getAttribute("data-field") || "")
+    .filter(isSyncField);
+}
+
+function readCollectionSyncConfigs(document: Document): CollectionSyncConfigs {
+  const configs: CollectionSyncConfigs = {};
+
+  for (const input of Array.from(
+    getContainer(document, "collections-container").querySelectorAll(
+      "input[type='checkbox'][data-collection-id]",
+    ),
+  ) as HTMLInputElement[]) {
+    const collectionID = Number(input.getAttribute("data-collection-id"));
+    if (collectionID > 0) {
+      configs[collectionID] = { syncEnabled: Boolean(input.checked) };
+    }
+  }
+
+  return configs;
+}
+
+function showSaveSuccess() {
+  new ztoolkit.ProgressWindow(addon.data.config.addonName)
+    .createLine({
+      text: getString("pref-save-success"),
+      type: "success",
+      progress: 100,
+    })
+    .show();
 }
 
 function getElement(document: Document, suffix: string) {
@@ -196,4 +197,14 @@ function getButton(document: Document, suffix: string) {
 
 function getContainer(document: Document, suffix: string) {
   return getElement(document, suffix) as HTMLDivElement;
+}
+
+function createHTMLElement<K extends keyof HTMLElementTagNameMap>(
+  document: Document,
+  tagName: K,
+) {
+  return document.createElementNS(
+    "http://www.w3.org/1999/xhtml",
+    tagName,
+  ) as HTMLElementTagNameMap[K];
 }

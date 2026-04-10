@@ -18,6 +18,8 @@ export type FluentMessageId =
   | 'pref-help'
   | 'pref-output-folder'
   | 'pref-page-title'
+  | 'pref-save'
+  | 'pref-save-success'
   | 'pref-sync-help'
   | 'pref-sync-on-modify'
   | 'pref-sync-title'
