@@ -538,17 +538,17 @@ export function extractSyncIdentity(existingContent?: string) {
 
 function extractMyNotesSection(existingContent?: string): string {
   if (!existingContent) {
-    return "## My Notes\n";
+    return "# My Notes\n";
   }
 
   const normalized = existingContent.replace(/\r\n/g, "\n");
   const lines = normalized.split("\n");
   const headingIndex = lines.findIndex(
-    (line) => line.trim().toLowerCase() === "## my notes",
+    (line) => line.trim().toLowerCase() === "# my notes",
   );
 
   if (headingIndex === -1) {
-    return "## My Notes\n";
+    return "# My Notes\n";
   }
 
   const managedIndex = lines.findIndex(
@@ -563,7 +563,7 @@ function renderManagedNotesBlock(notes: SyncChildNote[]) {
     return "";
   }
 
-  const lines = [MANAGED_START, "## Zotero Notes", ""];
+  const lines = [MANAGED_START, "# Zotero Notes", ""];
   notes.forEach((note, index) => {
     const title = note.title?.trim();
     const body = note.body.trim();

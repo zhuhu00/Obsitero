@@ -105,7 +105,7 @@ describe("sync markdown rendering", function () {
       ),
     );
     assert.ok(!markdown.includes("<!-- ZOTERO-SYNC:BEGIN -->"));
-    assert.match(markdown, /\n## My Notes\n\n$/);
+    assert.match(markdown, /\n# My Notes\n\n$/);
   });
 
   it("quotes YAML-sensitive scalar values so Obsidian properties stay valid", function () {
@@ -162,7 +162,7 @@ describe("sync markdown rendering", function () {
       'page: "https://project.example.com"',
       "---",
       "",
-      "## My Notes",
+      "# My Notes",
       "",
       "- keep this note",
       "- and this one too",
@@ -185,7 +185,7 @@ describe("sync markdown rendering", function () {
     assert.ok(markdown.includes('page: "https://project.example.com"'));
     assert.ok(!markdown.includes("old managed content"));
     assert.ok(
-      markdown.includes("## My Notes\n\n- keep this note\n- and this one too"),
+      markdown.includes("# My Notes\n\n- keep this note\n- and this one too"),
     );
   });
 
@@ -209,7 +209,7 @@ describe("sync markdown rendering", function () {
       "",
       '<!-- OBSITERO-ID: "zotero://select/library/items/LOCAL1234" -->',
       "",
-      "## My Notes",
+      "# My Notes",
       "",
       "- keep this note",
       "",
@@ -264,7 +264,7 @@ describe("sync markdown rendering", function () {
       'last_synced_at: "2026-04-10T11:48:58.420Z"',
       "---",
       "",
-      "## My Notes",
+      "# My Notes",
       "",
     ].join("\n");
 
@@ -305,13 +305,13 @@ describe("sync markdown rendering", function () {
       syncedAt: "2026-04-09T01:20:00.000Z",
     });
 
-    assert.ok(markdown.includes("## My Notes\n"));
+    assert.ok(markdown.includes("# My Notes\n"));
     assert.ok(markdown.includes("<!-- ZOTERO-SYNC:BEGIN -->"));
-    assert.ok(markdown.includes("## Zotero Notes"));
+    assert.ok(markdown.includes("# Zotero Notes"));
     assert.ok(markdown.includes("Long AI summary"));
     assert.ok(markdown.includes("Short human note"));
     assert.ok(
-      markdown.indexOf("## My Notes") < markdown.indexOf("## Zotero Notes"),
+      markdown.indexOf("# My Notes") < markdown.indexOf("# Zotero Notes"),
     );
   });
 
@@ -332,7 +332,7 @@ describe("sync markdown rendering", function () {
       syncedAt: "2026-04-09T01:20:00.000Z",
     });
 
-    assert.match(markdown, /\n## My Notes\n\n$/);
+    assert.match(markdown, /\n# My Notes\n\n$/);
   });
 
   it("renders a Bases file for the configured output folder", function () {

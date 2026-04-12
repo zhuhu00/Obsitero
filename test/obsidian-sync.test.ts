@@ -169,7 +169,7 @@ describe("obsidian sync", function () {
       );
       assert.isTrue(
         pageContents.every((content) =>
-          (content as string).includes("## My Notes"),
+          /^# My Notes$/m.test(content as string),
         ),
       );
       assert.isTrue(
@@ -237,8 +237,10 @@ describe("obsidian sync", function () {
         (content as string).includes('display_title: "Test Paper Alpha"'),
       ) as string | undefined;
       assert.isString(alphaContent);
-      assert.include(alphaContent as string, "## My Notes");
-      assert.include(alphaContent as string, "## Zotero Notes");
+      assert.match(alphaContent as string, /^# My Notes$/m);
+      assert.notMatch(alphaContent as string, /^## My Notes$/m);
+      assert.match(alphaContent as string, /^# Zotero Notes$/m);
+      assert.notMatch(alphaContent as string, /^## Zotero Notes$/m);
       assert.match(
         alphaContent as string,
         /^pdf:\s*"https:\/\/example\.com\/alpha"$/m,
@@ -254,8 +256,8 @@ describe("obsidian sync", function () {
       assert.include(alphaContent as string, "Alpha AI summary");
       assert.include(alphaContent as string, "Alpha comment");
       assert.isTrue(
-        (alphaContent as string).indexOf("## My Notes") <
-          (alphaContent as string).indexOf("## Zotero Notes"),
+        (alphaContent as string).indexOf("\n# My Notes\n") <
+          (alphaContent as string).indexOf("\n# Zotero Notes\n"),
       );
       await logTestStep("assertions-finished");
     } catch (error) {

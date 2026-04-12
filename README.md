@@ -11,7 +11,7 @@ It syncs each Zotero parent item into one Obsidian markdown file, keeps your loc
 
 - One Zotero parent item syncs to one Obsidian markdown file
 - Uses Zotero item `Notes` child notes and appends them into the same markdown file
-- Preserves `## My Notes` during resync
+- Preserves `# My Notes` during resync
 - Generates `Zotero.base` inside your configured Obsidian output folder
 - Supports collection-based auto-sync and manual sync from Zotero context menus
 - Uses title-based filenames with safe sanitization for cross-platform compatibility
@@ -41,13 +41,13 @@ page:
 last_synced_at: "2026-04-09T10:00:00.000Z"
 ---
 
-## My Notes
+# My Notes
 
 <!-- your local notes -->
 
 <!-- ZOTERO-SYNC:BEGIN -->
 
-## Zotero Notes
+# Zotero Notes
 
 <!-- child notes from Zotero -->
 <!-- ZOTERO-SYNC:END -->
@@ -106,11 +106,11 @@ Once the file exists, Obsitero preserves your local values for:
 - `pdf`
 - `code`
 - `page`
-- everything under `## My Notes`
+- everything under `# My Notes`
 
 Important:
-Write your own reading notes only under `## My Notes`.
-Obsitero preserves that section on resync, but it does not guarantee that arbitrary manual content outside `## My Notes` will be kept unchanged.
+Write your own reading notes only under `# My Notes`.
+Obsitero preserves that section on resync, but it does not guarantee that arbitrary manual content outside `# My Notes` will be kept unchanged.
 
 This means you can refine metadata in Obsidian without having later syncs overwrite it.
 
@@ -121,7 +121,7 @@ These are maintained by Obsitero itself:
 - `cssclasses`
 - `local_file`
 - `last_synced_at`
-- the managed `## Zotero Notes` block
+- the managed `# Zotero Notes` block
 
 ## Auto-Sync Behavior
 
