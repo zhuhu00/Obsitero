@@ -5,6 +5,6 @@ pref("createDataviewIndex", true);
 pref("fileNameStrategy", "title");
 pref(
   "selectedFields",
-  '["authors","publication","tags","zotero_url","link","pdf"]',
+  '["authors","publication","tags","pdf","local_file"]',
 );
 pref("collectionSyncConfigs", "{}");

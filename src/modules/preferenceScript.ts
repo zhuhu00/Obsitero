@@ -16,6 +16,13 @@ import {
 import { getPref, setPref } from "../utils/prefs";
 import { getString } from "../utils/locale";
 
+const FIELD_LABELS: Partial<Record<string, string>> = {
+  local_file: "local_file",
+  citation_key: "citation_key",
+  date_added: "date_added",
+  date_modified: "date_modified",
+};
+
 export async function registerPrefsScripts(window: Window) {
   addon.data.prefs = { window };
 
@@ -54,7 +61,7 @@ function renderFieldCheckboxes(document: Document) {
     checkbox.dataset.field = field;
 
     const text = createHTMLElement(document, "span");
-    text.textContent = field;
+    text.textContent = FIELD_LABELS[field] || field;
 
     label.append(checkbox, text);
     container.append(label);

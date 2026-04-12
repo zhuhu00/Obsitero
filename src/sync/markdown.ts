@@ -5,12 +5,11 @@ export type SyncField =
   | "publication"
   | "tags"
   | "pdf"
+  | "local_file"
   | "code"
   | "page"
   | "collections"
   | "citation_key"
-  | "zotero_url"
-  | "link"
   | "date_added"
   | "date_modified";
 
@@ -24,11 +23,10 @@ export interface SyncItemData {
   itemKey: string;
   title?: string;
   authors?: string[];
-  authorsShort?: string[];
   year?: string;
   publication?: string;
   tags?: string[];
-  pdf?: string;
+  localFile?: string;
   code?: string;
   page?: string;
   collections?: string[];
@@ -62,9 +60,8 @@ export const DEFAULT_SYNC_FIELDS: SyncField[] = [
   "authors",
   "publication",
   "tags",
-  "link",
   "pdf",
-  "zotero_url",
+  "local_file",
 ];
 
 export const ALL_SYNC_FIELDS: SyncField[] = [
@@ -74,29 +71,27 @@ export const ALL_SYNC_FIELDS: SyncField[] = [
   "publication",
   "tags",
   "pdf",
+  "local_file",
   "code",
   "page",
   "collections",
   "citation_key",
-  "zotero_url",
-  "link",
   "date_added",
   "date_modified",
 ];
 
 const MANAGED_START = "<!-- ZOTERO-SYNC:BEGIN -->";
 const MANAGED_END = "<!-- ZOTERO-SYNC:END -->";
+const SYNC_ID_MARKER_PREFIX = "<!-- OBSITERO-ID:";
 const LAST_SYNC_FIELD = "last_synced_at";
 const DISPLAY_TITLE_FIELD = "display_title";
-const AUTHORS_SHORT_FIELD = "authors_short";
 const NOTE_CSS_CLASSES = ["zotero-paper"];
 const PRIMARY_FIELD_ORDER: SyncField[] = [
   "authors",
   "publication",
   "tags",
-  "link",
   "pdf",
-  "zotero_url",
+  "local_file",
 ];
 const SECONDARY_FIELD_ORDER: SyncField[] = [
   "title",
@@ -111,8 +106,7 @@ const OBSIDIAN_OWNED_FIELDS = new Set<SyncField>([
   "authors",
   "publication",
   "tags",
-  "link",
-  "zotero_url",
+  "pdf",
 ]);
 
 export function resolveMarkdownFilename(
@@ -154,12 +148,16 @@ export function renderSyncedMarkdown({
     syncedAt,
     existingContent,
   );
+  const syncIdentityComment = renderSyncIdentityComment(
+    item.zoteroUri ?? extractSyncIdentity(existingContent),
+  );
   const userSection = extractMyNotesSection(existingContent);
   const managedBlock = renderManagedNotesBlock(item.childNotes ?? []);
 
   return [
     frontmatter,
     "",
+    ...(syncIdentityComment ? [syncIdentityComment, ""] : []),
     userSection,
     ...(managedBlock ? ["", managedBlock] : []),
     "",
@@ -174,24 +172,21 @@ export function buildBasesFile({ outputFolder }: BasesFileOptions): string {
     "    - 'file.ext == \"md\"'",
     "formulas:",
     `  title_link: '${buildLinkFormula("file.name", "display_title", true)}'`,
-    `  url_link: '${buildLinkFormula("link", "link")}'`,
     `  pdf_link: '${buildLinkFormula("pdf", "pdf")}'`,
-    `  zotero_link: '${buildLinkFormula("zotero_url", "zotero")}'`,
+    `  local_file_link: '${buildLinkFormula("local_file", "local")}'`,
     "properties:",
     "  formula.title_link:",
     '    displayName: "Title"',
-    "  authors_short:",
+    "  authors:",
     '    displayName: "Authors"',
     "  publication:",
     '    displayName: "Publication"',
     "  tags:",
     '    displayName: "Tags"',
-    "  formula.url_link:",
-    '    displayName: "Url"',
     "  formula.pdf_link:",
     '    displayName: "Pdf"',
-    "  formula.zotero_link:",
-    '    displayName: "Zotero"',
+    "  formula.local_file_link:",
+    '    displayName: "Local File"',
     "  code:",
     '    displayName: "Code"',
     "  page:",
@@ -201,12 +196,11 @@ export function buildBasesFile({ outputFolder }: BasesFileOptions): string {
     '    name: "Library"',
     "    order:",
     "      - formula.title_link",
-    "      - note.authors_short",
+    "      - note.authors",
     "      - note.publication",
     "      - note.tags",
-    "      - formula.url_link",
     "      - formula.pdf_link",
-    "      - formula.zotero_link",
+    "      - formula.local_file_link",
     "      - note.code",
     "      - note.page",
     "    sort:",
@@ -237,9 +231,6 @@ function renderFrontmatter(
   lines.push(...renderOrderedFields(item, selectedFields, existingContent));
   lines.push(...renderField("code", item, existingContent));
   lines.push(...renderField("page", item, existingContent));
-  lines.push(
-    ...renderHelperArrayField(AUTHORS_SHORT_FIELD, item.authorsShort ?? []),
-  );
   if (syncedAt) {
     lines.push(`${LAST_SYNC_FIELD}: ${escapeYaml(syncedAt)}`);
   }
@@ -342,7 +333,17 @@ function getFieldValue(
         item.tags ?? extractExistingArrayField(existingContent, "tags").value
       );
     case "pdf":
-      return item.pdf ?? "";
+      return item.link ?? "";
+    case "local_file": {
+      const existingLocalFile = extractExistingLocalFile(existingContent);
+      if (item.localFile) {
+        return item.localFile;
+      }
+      if (existingLocalFile.found) {
+        return existingLocalFile.value;
+      }
+      return "";
+    }
     case "code":
       return extractExistingScalarField(existingContent, "code").value;
     case "page":
@@ -351,10 +352,6 @@ function getFieldValue(
       return item.collections ?? [];
     case "citation_key":
       return item.citationKey ?? "";
-    case "zotero_url":
-      return item.zoteroUri ?? "";
-    case "link":
-      return item.link ?? "";
     case "date_added":
       return item.dateAdded ?? "";
     case "date_modified":
@@ -375,10 +372,8 @@ function getExistingFieldValue(
       return extractExistingScalarField(existingContent, "title");
     case "publication":
       return extractExistingScalarField(existingContent, "publication");
-    case "link":
-      return extractExistingScalarField(existingContent, "link");
-    case "zotero_url":
-      return extractExistingScalarField(existingContent, "zotero_url");
+    case "pdf":
+      return extractExistingPaperLink(existingContent);
     default:
       return { found: false, value: "" };
   }
@@ -398,7 +393,9 @@ function extractExistingScalarField(
     return { found: false, value: "" };
   }
 
-  const match = frontmatter.match(new RegExp(`^${fieldName}:\\s*(.*)$`, "m"));
+  const match = frontmatter.match(
+    new RegExp(`^${escapeRegExp(fieldName)}:[ \\t]*(.*)$`, "m"),
+  );
   if (!match) {
     return { found: false, value: "" };
   }
@@ -417,6 +414,10 @@ function extractExistingScalarField(
   }
 
   return { found: true, value: rawValue };
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function extractExistingArrayField(
@@ -461,6 +462,40 @@ function extractExistingArrayField(
   return { found: true, value: values };
 }
 
+function extractExistingPaperLink(
+  existingContent: string | undefined,
+): ExistingFieldValue<string> {
+  const currentField = extractExistingScalarField(existingContent, "pdf");
+  if (currentField.found && !isLikelyLocalFile(currentField.value)) {
+    return currentField;
+  }
+
+  const legacyLinkField = extractExistingScalarField(existingContent, "link");
+  if (legacyLinkField.found) {
+    return legacyLinkField;
+  }
+
+  return currentField.found
+    ? { found: true, value: "" }
+    : { found: false, value: "" };
+}
+
+function extractExistingLocalFile(
+  existingContent: string | undefined,
+): ExistingFieldValue<string> {
+  const currentField = extractExistingScalarField(existingContent, "local_file");
+  if (currentField.found) {
+    return currentField;
+  }
+
+  const legacyPdfField = extractExistingScalarField(existingContent, "pdf");
+  if (legacyPdfField.found && isLikelyLocalFile(legacyPdfField.value)) {
+    return legacyPdfField;
+  }
+
+  return { found: false, value: "" };
+}
+
 function extractFrontmatter(existingContent?: string) {
   if (!existingContent) {
     return "";
@@ -469,6 +504,36 @@ function extractFrontmatter(existingContent?: string) {
   const normalized = existingContent.replace(/\r\n/g, "\n");
   const match = normalized.match(/^---\n([\s\S]*?)\n---/);
   return match?.[1] ?? "";
+}
+
+export function extractSyncIdentity(existingContent?: string) {
+  if (!existingContent) {
+    return undefined;
+  }
+
+  const normalized = existingContent.replace(/\r\n/g, "\n");
+  const syncIdentityMatch = normalized.match(
+    /<!-- OBSITERO-ID:\s*(".*?"|.*?)\s*-->/,
+  );
+  if (syncIdentityMatch) {
+    const rawValue = syncIdentityMatch[1].trim();
+    if (rawValue.startsWith('"') && rawValue.endsWith('"')) {
+      try {
+        return JSON.parse(rawValue) as string;
+      } catch {
+        return rawValue.slice(1, -1);
+      }
+    }
+    return rawValue;
+  }
+
+  const legacyZoteroUrl = extractExistingScalarField(
+    existingContent,
+    "zotero_url",
+  );
+  return legacyZoteroUrl.found && legacyZoteroUrl.value
+    ? legacyZoteroUrl.value
+    : undefined;
 }
 
 function extractMyNotesSection(existingContent?: string): string {
@@ -513,6 +578,13 @@ function renderManagedNotesBlock(notes: SyncChildNote[]) {
   });
   lines.push(MANAGED_END);
   return lines.join("\n");
+}
+
+function renderSyncIdentityComment(syncIdentity?: string) {
+  if (!syncIdentity) {
+    return "";
+  }
+  return `${SYNC_ID_MARKER_PREFIX} ${escapeYaml(syncIdentity)} -->`;
 }
 
 function normalizeWhitespace(value: string) {
@@ -564,6 +636,10 @@ function stripControlCharacters(value: string) {
   return Array.from(value)
     .filter((character) => character.charCodeAt(0) >= 32)
     .join("");
+}
+
+function isLikelyLocalFile(value: string) {
+  return /^(?:file:\/\/|\/|[A-Za-z]:[\\/])/.test(value);
 }
 
 function escapeYaml(value: string): string {

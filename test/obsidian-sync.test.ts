@@ -39,7 +39,7 @@ describe("obsidian sync", function () {
       Zotero.Prefs.set(`${config.prefsPrefix}.fileNameStrategy`, "title", true);
       Zotero.Prefs.set(
         `${config.prefsPrefix}.selectedFields`,
-        '["authors","publication","tags","zotero_url","link","pdf"]',
+        '["authors","publication","tags","pdf","local_file"]',
         true,
       );
       Zotero.Prefs.set(
@@ -135,35 +135,20 @@ describe("obsidian sync", function () {
       assert.include(baseContents as string, "properties:");
       assert.include(baseContents as string, "formula.title_link:");
       assert.include(baseContents as string, 'displayName: "Title"');
-      assert.include(baseContents as string, "authors_short:");
+      assert.include(baseContents as string, "authors:");
       assert.include(baseContents as string, 'displayName: "Authors"');
-      assert.include(baseContents as string, "views:");
-      assert.include(baseContents as string, "- type: table");
-      assert.include(baseContents as string, 'name: "Library"');
-      assert.include(
-        baseContents as string,
-        "title_link: 'if(file.name, link(file.name, display_title), \"\")'",
-      );
-      assert.include(baseContents as string, "- formula.title_link");
-      assert.include(baseContents as string, "- note.authors_short");
-      assert.include(baseContents as string, "- note.publication");
-      assert.include(baseContents as string, "- note.tags");
       assert.include(baseContents as string, "formulas:");
+      assert.include(baseContents as string, "title_link:");
       assert.include(
         baseContents as string,
-        'url_link: \'if(link, link(link, "link"), "")\'',
+        "pdf_link:",
       );
       assert.include(
         baseContents as string,
-        'pdf_link: \'if(pdf, link(pdf, "pdf"), "")\'',
+        "local_file_link:",
       );
-      assert.include(
-        baseContents as string,
-        'zotero_link: \'if(zotero_url, link(zotero_url, "zotero"), "")\'',
-      );
-      assert.include(baseContents as string, "- formula.url_link");
-      assert.include(baseContents as string, "- formula.pdf_link");
-      assert.include(baseContents as string, "- formula.zotero_link");
+      assert.include(baseContents as string, "views:");
+      assert.include(baseContents as string, "name: \"Library\"");
 
       const allMarkdown = await listMarkdownFiles(OUTPUT_DIRECTORY);
       const syncedPages = allMarkdown.filter(
@@ -203,9 +188,7 @@ describe("obsidian sync", function () {
         ),
       );
       assert.isTrue(
-        pageContents.every((content) =>
-          (content as string).includes("authors_short:"),
-        ),
+        pageContents.every((content) => (content as string).includes("authors:")),
       );
       assert.isTrue(
         pageContents.every((content) =>
@@ -218,7 +201,7 @@ describe("obsidian sync", function () {
       assert.isTrue(
         pageContents.every(
           (content) =>
-            (content as string).indexOf("authors_short:") <
+            (content as string).indexOf("page:") <
             (content as string).indexOf("last_synced_at:"),
         ),
       );
@@ -258,7 +241,15 @@ describe("obsidian sync", function () {
       assert.include(alphaContent as string, "## Zotero Notes");
       assert.match(
         alphaContent as string,
-        /^pdf:\s*"file:\/\/.+Test(?:%20| )Paper(?:%20| )Alpha\.pdf"$/m,
+        /^pdf:\s*"https:\/\/example\.com\/alpha"$/m,
+      );
+      assert.match(
+        alphaContent as string,
+        /^local_file:\s*"file:\/\/.+Test(?:%20| )Paper(?:%20| )Alpha\.pdf"$/m,
+      );
+      assert.include(
+        alphaContent as string,
+        '<!-- OBSITERO-ID: "',
       );
       assert.include(alphaContent as string, "Alpha AI summary");
       assert.include(alphaContent as string, "Alpha comment");

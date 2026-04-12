@@ -8,6 +8,7 @@ import {
 } from "./config";
 import {
   buildBasesFile,
+  extractSyncIdentity,
   renderSyncedMarkdown,
   resolveUniqueMarkdownFilename,
   type FileNameStrategy,
@@ -104,8 +105,8 @@ export async function syncItemsToObsidian(items: Zotero.Item[]) {
       childNoteCount: itemData.childNotes?.length ?? 0,
     });
     const existingFileName =
-      itemData.zoteroUri && existingFiles.byZoteroUrl.has(itemData.zoteroUri)
-        ? existingFiles.byZoteroUrl.get(itemData.zoteroUri)
+      itemData.zoteroUri && existingFiles.bySyncIdentity.has(itemData.zoteroUri)
+        ? existingFiles.bySyncIdentity.get(itemData.zoteroUri)
         : undefined;
     const fileName =
       existingFileName ||
@@ -317,7 +318,7 @@ async function removePathIfExists(path: string) {
 
 async function listExistingMarkdownFiles(directory: string) {
   const names = new Set<string>();
-  const byZoteroUrl = new Map<string, string>();
+  const bySyncIdentity = new Map<string, string>();
   await debugLog("listExistingMarkdownFiles:iterate:start", { directory });
   await Zotero.File.iterateDirectory(directory, (entry) => {
     if (!entry.isDir && entry.name.endsWith(".md")) {
@@ -336,34 +337,16 @@ async function listExistingMarkdownFiles(directory: string) {
       path,
       hasContent: Boolean(content),
     });
-    const zoteroUrl = extractZoteroUrl(content);
-    if (zoteroUrl) {
-      byZoteroUrl.set(zoteroUrl, name);
+    const syncIdentity = extractExistingSyncIdentity(content);
+    if (syncIdentity) {
+      bySyncIdentity.set(syncIdentity, name);
     }
   }
-  return { names, byZoteroUrl };
+  return { names, bySyncIdentity };
 }
 
-function extractZoteroUrl(content?: string) {
-  if (!content) {
-    return undefined;
-  }
-  const match = content.match(/^zotero_(?:url|uri):\s*(.+)$/m);
-  if (!match) {
-    return undefined;
-  }
-  const rawValue = match[1].trim();
-  if (!rawValue) {
-    return undefined;
-  }
-  if (rawValue.startsWith('"')) {
-    try {
-      return JSON.parse(rawValue) as string;
-    } catch {
-      return undefined;
-    }
-  }
-  return rawValue;
+function extractExistingSyncIdentity(content?: string) {
+  return extractSyncIdentity(content);
 }
 
 async function debugLog(message: string, details?: Record<string, unknown>) {

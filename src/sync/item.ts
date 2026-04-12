@@ -9,11 +9,10 @@ export async function buildSyncItemData(
     itemKey: item.key,
     title: item.getField("title") || item.getDisplayTitle(),
     authors: getAuthorNames(item),
-    authorsShort: getAuthorNames(item).slice(0, 2),
     year: getItemYear(item),
     publication: getPublicationTitle(item),
     tags: getControlledTags(item),
-    pdf: await getPdfLink(item),
+    localFile: await getLocalFileLink(item),
     collections: item
       .getCollections()
       .map((collectionID) => Zotero.Collections.get(collectionID))
@@ -30,7 +29,7 @@ export async function buildSyncItemData(
   };
 }
 
-async function getPdfLink(item: Zotero.Item) {
+async function getLocalFileLink(item: Zotero.Item) {
   const attachments = await item.getBestAttachments();
   const attachment = attachments.find((candidate) =>
     candidate.isPDFAttachment(),

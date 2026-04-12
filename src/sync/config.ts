@@ -24,11 +24,12 @@ export const FILE_NAME_STRATEGIES: FileNameStrategy[] = [
 export const DEFAULT_OUTPUT_FOLDER = "Zotero";
 
 export const DEFAULT_FILE_NAME_STRATEGY: FileNameStrategy = "title";
-const LEGACY_DEFAULT_SYNC_FIELDS: SyncField[] = [
+const LEGACY_DEFAULT_SYNC_FIELDS = [
   "authors",
   "publication",
   "tags",
   "link",
+  "pdf",
   "zotero_url",
 ];
 
@@ -45,7 +46,7 @@ export function loadSelectedFields(): SyncField[] {
       return [...DEFAULT_SYNC_FIELDS];
     }
     const selected = parsed
-      .map(normalizeField)
+      .map((value) => normalizeField(value, parsed))
       .filter((field): field is SyncField => Boolean(field));
     if (!selected.length) {
       return [...DEFAULT_SYNC_FIELDS];
@@ -132,15 +133,29 @@ export function isSyncField(value: unknown): value is SyncField {
   );
 }
 
-function normalizeField(value: unknown): SyncField | undefined {
-  if (value === "zotero_uri") {
-    return "zotero_url";
+function normalizeField(
+  value: unknown,
+  allValues: unknown[],
+): SyncField | undefined {
+  if (isLegacySelection(allValues)) {
+    if (value === "status") {
+      return "tags";
+    }
+    if (value === "zotero_uri" || value === "zotero_url") {
+      return undefined;
+    }
+    if (value === "doi" || value === "url" || value === "link") {
+      return "pdf";
+    }
+    if (value === "pdf") {
+      return "local_file";
+    }
   }
   if (value === "status") {
     return "tags";
   }
-  if (value === "doi" || value === "url") {
-    return "link";
+  if (value === "doi" || value === "url" || value === "link") {
+    return "pdf";
   }
   return isSyncField(value) ? value : undefined;
 }
@@ -152,5 +167,11 @@ function isLegacyDefaultFieldSelection(fields: SyncField[]) {
 
   return LEGACY_DEFAULT_SYNC_FIELDS.every(
     (field, index) => fields[index] === field,
+  );
+}
+
+function isLegacySelection(values: unknown[]) {
+  return values.some((value) =>
+    ["link", "zotero_url", "zotero_uri"].includes(String(value)),
   );
 }

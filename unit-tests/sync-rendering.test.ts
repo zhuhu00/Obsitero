@@ -14,7 +14,6 @@ describe("sync markdown rendering", function () {
     itemKey: "ABCD1234",
     title: "EmbodiedSAM",
     authors: ["Alice Zhang", "Bob Li"],
-    authorsShort: ["Alice Zhang", "Bob Li"],
     year: "2025",
     publication: "ICLR",
     tags: ["Unread"],
@@ -24,7 +23,7 @@ describe("sync markdown rendering", function () {
     doi: "10.1000/example",
     url: "https://example.com/paper",
     link: "https://example.com/paper",
-    pdf: "file:///Users/hu/Zotero/storage/ABCD1234/paper.pdf",
+    localFile: "file:///Users/hu/Zotero/storage/ABCD1234/paper.pdf",
     dateAdded: "2026-04-08T10:00:00Z",
     dateModified: "2026-04-08T12:00:00Z",
     childNotes: [],
@@ -96,14 +95,10 @@ describe("sync markdown rendering", function () {
           'publication: "ICLR"',
           "tags:",
           '  - "Unread"',
-          'link: "https://example.com/paper"',
-          'pdf: "file:///Users/hu/Zotero/storage/ABCD1234/paper.pdf"',
-          'zotero_url: "zotero://select/library/items/ABCD1234"',
+          'pdf: "https://example.com/paper"',
+          'local_file: "file:///Users/hu/Zotero/storage/ABCD1234/paper.pdf"',
           "code:",
           "page:",
-          "authors_short:",
-          '  - "Alice Zhang"',
-          '  - "Bob Li"',
           'last_synced_at: "2026-04-09T01:20:00.000Z"',
           "---",
         ].join("\n"),
@@ -125,8 +120,7 @@ describe("sync markdown rendering", function () {
         "publication",
         "tags",
         "pdf",
-        "zotero_url",
-        "link",
+        "local_file",
       ],
       syncedAt: "2026-04-09T01:20:00.000Z",
     });
@@ -138,25 +132,26 @@ describe("sync markdown rendering", function () {
     );
     assert.ok(markdown.includes('publication: "ICLR"'));
     assert.ok(markdown.includes('  - "Unread"'));
-    assert.ok(markdown.includes('link: "https://example.com/paper"'));
+    assert.ok(markdown.includes('pdf: "https://example.com/paper"'));
     assert.ok(
       markdown.includes(
-        'pdf: "file:///Users/hu/Zotero/storage/ABCD1234/paper.pdf"',
+        'local_file: "file:///Users/hu/Zotero/storage/ABCD1234/paper.pdf"',
       ),
     );
   });
 
-  it("includes a short author list for index rendering and maps tags", function () {
+  it("keeps authors in frontmatter and maps tags", function () {
     const markdown = renderSyncedMarkdown({
       item: sampleItem,
       selectedFields: DEFAULT_SYNC_FIELDS,
       syncedAt: "2026-04-09T01:20:00.000Z",
     });
 
-    assert.ok(markdown.includes("authors_short:"));
+    assert.ok(markdown.includes("authors:"));
     assert.ok(markdown.includes('  - "Alice Zhang"'));
     assert.ok(markdown.includes('  - "Bob Li"'));
     assert.ok(markdown.includes('  - "Unread"'));
+    assert.ok(!markdown.includes("authors_short:"));
   });
 
   it("preserves user content under My Notes when updating an existing file", function () {
@@ -205,15 +200,14 @@ describe("sync markdown rendering", function () {
       'publication: "CVPR2026"',
       "tags:",
       '  - "Done"',
-      'link: "https://local.example.com/paper"',
-      'pdf: "file:///Users/hu/Zotero/storage/LOCAL1234/local.pdf"',
-      'zotero_url: "zotero://select/library/items/LOCAL1234"',
+      'pdf: "https://local.example.com/paper"',
+      'local_file: "file:///Users/hu/Zotero/storage/LOCAL1234/local.pdf"',
       'code: "https://github.com/example/project"',
       'page: "https://project.example.com"',
-      "authors_short:",
-      '  - "Local Author"',
       'last_synced_at: "2026-04-09T01:20:00.000Z"',
       "---",
+      "",
+      '<!-- OBSITERO-ID: "zotero://select/library/items/LOCAL1234" -->',
       "",
       "## My Notes",
       "",
@@ -232,15 +226,15 @@ describe("sync markdown rendering", function () {
     assert.ok(markdown.includes('  - "Local Author"'));
     assert.ok(markdown.includes('publication: "CVPR2026"'));
     assert.ok(markdown.includes('  - "Done"'));
-    assert.ok(markdown.includes('link: "https://local.example.com/paper"'));
+    assert.ok(markdown.includes('pdf: "https://local.example.com/paper"'));
     assert.ok(
       markdown.includes(
-        'pdf: "file:///Users/hu/Zotero/storage/ABCD1234/paper.pdf"',
+        'local_file: "file:///Users/hu/Zotero/storage/ABCD1234/paper.pdf"',
       ),
     );
     assert.ok(
       markdown.includes(
-        'zotero_url: "zotero://select/library/items/LOCAL1234"',
+        '<!-- OBSITERO-ID: "zotero://select/library/items/ABCD1234" -->',
       ),
     );
     assert.ok(markdown.includes('code: "https://github.com/example/project"'));
@@ -248,7 +242,54 @@ describe("sync markdown rendering", function () {
     assert.ok(markdown.includes('last_synced_at: "2026-04-09T02:00:00.000Z"'));
     assert.ok(!markdown.includes('display_title: "EmbodiedSAM"'));
     assert.ok(!markdown.includes('publication: "ICLR"'));
-    assert.ok(!markdown.includes("zotero://select/library/items/ABCD1234"));
+    assert.ok(!markdown.includes('zotero_url: "'));
+  });
+
+  it("keeps empty scalar frontmatter fields empty on subsequent syncs", function () {
+    const existing = [
+      "---",
+      "cssclasses:",
+      '  - "zotero-paper"',
+      'display_title: "OccSim: Multi-kilometer Simulation with Long-horizon Occupancy World Models"',
+      "authors:",
+      '  - "Tianran Liu"',
+      '  - "Shengwen Zhao"',
+      "publication:",
+      "tags:",
+      '  - "Unread"',
+      'pdf: "http://arxiv.org/abs/2603.28887"',
+      'local_file: "file:///Users/hu/Zotero/storage/U7XKSAV2/OccSim.pdf"',
+      "code:",
+      "page:",
+      'last_synced_at: "2026-04-10T11:48:58.420Z"',
+      "---",
+      "",
+      "## My Notes",
+      "",
+    ].join("\n");
+
+    const markdown = renderSyncedMarkdown({
+      item: {
+        ...sampleItem,
+        title: "OccSim: Multi-kilometer Simulation with Long-horizon Occupancy World Models",
+        authors: ["Tianran Liu", "Shengwen Zhao"],
+        publication: "",
+        tags: ["Unread"],
+        link: "http://arxiv.org/abs/2603.28887",
+        localFile: "file:///Users/hu/Zotero/storage/U7XKSAV2/OccSim.pdf",
+        zoteroUri: "http://zotero.org/users/12958575/items/U2WAWWHM",
+      },
+      selectedFields: DEFAULT_SYNC_FIELDS,
+      existingContent: existing,
+      syncedAt: "2026-04-10T15:23:10.017Z",
+    });
+
+    assert.ok(markdown.includes("publication:\n"));
+    assert.ok(markdown.includes("code:\n"));
+    assert.ok(markdown.includes("page:\n"));
+    assert.ok(!markdown.includes('publication: "tags:"'));
+    assert.ok(!markdown.includes('code: "page:"'));
+    assert.ok(!markdown.includes('page: "last_synced_at:"'));
   });
 
   it("renders all Zotero child notes after My Notes in a managed block", function () {
@@ -308,24 +349,21 @@ describe("sync markdown rendering", function () {
         "    - 'file.ext == \"md\"'",
         "formulas:",
         "  title_link: 'if(file.name, link(file.name, display_title), \"\")'",
-        '  url_link: \'if(link, link(link, "link"), "")\'',
         '  pdf_link: \'if(pdf, link(pdf, "pdf"), "")\'',
-        '  zotero_link: \'if(zotero_url, link(zotero_url, "zotero"), "")\'',
+        '  local_file_link: \'if(local_file, link(local_file, "local"), "")\'',
         "properties:",
         "  formula.title_link:",
         '    displayName: "Title"',
-        "  authors_short:",
+        "  authors:",
         '    displayName: "Authors"',
         "  publication:",
         '    displayName: "Publication"',
         "  tags:",
         '    displayName: "Tags"',
-        "  formula.url_link:",
-        '    displayName: "Url"',
         "  formula.pdf_link:",
         '    displayName: "Pdf"',
-        "  formula.zotero_link:",
-        '    displayName: "Zotero"',
+        "  formula.local_file_link:",
+        '    displayName: "Local File"',
         "  code:",
         '    displayName: "Code"',
         "  page:",
@@ -335,12 +373,11 @@ describe("sync markdown rendering", function () {
         '    name: "Library"',
         "    order:",
         "      - formula.title_link",
-        "      - note.authors_short",
+        "      - note.authors",
         "      - note.publication",
         "      - note.tags",
-        "      - formula.url_link",
         "      - formula.pdf_link",
-        "      - formula.zotero_link",
+        "      - formula.local_file_link",
         "      - note.code",
         "      - note.page",
         "    sort:",
@@ -350,7 +387,7 @@ describe("sync markdown rendering", function () {
     );
   });
 
-  it("places last_synced_at after authors_short in synced note frontmatter", function () {
+  it("places last_synced_at after page in synced note frontmatter", function () {
     const markdown = renderSyncedMarkdown({
       item: sampleItem,
       selectedFields: DEFAULT_SYNC_FIELDS,
@@ -358,7 +395,7 @@ describe("sync markdown rendering", function () {
     });
 
     assert.ok(
-      markdown.indexOf("authors_short:") < markdown.indexOf("last_synced_at:"),
+      markdown.indexOf("page:") < markdown.indexOf("last_synced_at:"),
     );
   });
 

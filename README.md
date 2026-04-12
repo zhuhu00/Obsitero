@@ -34,13 +34,10 @@ authors:
 publication: "CVPR 2026"
 tags:
   - "Unread"
-link: "https://arxiv.org/abs/..."
-zotero_url: "zotero://select/library/items/XXXX"
+pdf: "https://arxiv.org/abs/..."
+local_file: "file:///Users/hu/Zotero/storage/XXXX/paper.pdf"
 code:
 page:
-authors_short:
-  - "Author A"
-  - "Author B"
 last_synced_at: "2026-04-09T10:00:00.000Z"
 ---
 
@@ -95,8 +92,8 @@ These fields are created from Zotero when the markdown file is first generated:
 - `authors`
 - `publication`
 - `tags`
-- `link`
-- `zotero_url`
+- `pdf`
+- `local_file`
 
 ### Obsidian-owned after creation
 
@@ -106,11 +103,14 @@ Once the file exists, Obsitero preserves your local values for:
 - `authors`
 - `publication`
 - `tags`
-- `link`
-- `zotero_url`
+- `pdf`
 - `code`
 - `page`
 - everything under `## My Notes`
+
+Important:
+Write your own reading notes only under `## My Notes`.
+Obsitero preserves that section on resync, but it does not guarantee that arbitrary manual content outside `## My Notes` will be kept unchanged.
 
 This means you can refine metadata in Obsidian without having later syncs overwrite it.
 
@@ -119,7 +119,7 @@ This means you can refine metadata in Obsidian without having later syncs overwr
 These are maintained by Obsitero itself:
 
 - `cssclasses`
-- `authors_short`
+- `local_file`
 - `last_synced_at`
 - the managed `## Zotero Notes` block
 
