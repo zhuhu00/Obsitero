@@ -1,6 +1,6 @@
 # Obsitero
 
-[![zotero target version](https://img.shields.io/badge/Zotero-7-green?style=flat-square&logo=zotero&logoColor=CC2936)](https://www.zotero.org)
+[![zotero target version](https://img.shields.io/badge/Zotero-9-green?style=flat-square&logo=zotero&logoColor=CC2936)](https://www.zotero.org)
 [![GitHub Repo stars](https://img.shields.io/github/stars/zhuhu00/Obsitero?style=flat-square)](https://github.com/zhuhu00/Obsitero)
 
 Obsitero is a Zotero plugin for a Notero-style Obsidian workflow.
@@ -242,7 +242,7 @@ That template origin is intentionally retained because it still explains:
 
 - the Zotero bootstrap plugin structure
 - scaffold-driven build and release behavior
-- the plugin packaging model for Zotero 7
+- the plugin packaging model for Zotero 9
 
 This repository is no longer a generic template repo. It is the Obsitero plugin implementation.
 
