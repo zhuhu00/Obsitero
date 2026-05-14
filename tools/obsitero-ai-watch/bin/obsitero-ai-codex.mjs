@@ -14,17 +14,13 @@ export function buildCodexArgs(job, jobFile, outputFile) {
     "exec",
     "--skip-git-repo-check",
     "--sandbox",
-    "workspace-write",
+    "read-only",
     "--ephemeral",
     "-C",
     jobWorkspaceDir,
     "--add-dir",
     jobWorkspaceDir,
   ];
-
-  if (job.figure_asset_dir) {
-    args.push("--add-dir", job.figure_asset_dir);
-  }
 
   args.push("-o", outputFile, "-");
   return args;

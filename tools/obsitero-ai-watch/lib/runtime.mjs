@@ -11,6 +11,10 @@ import {
   shouldProcessPaper,
   upsertAiNotes,
 } from "./core.mjs";
+import {
+  extractPdfFigures,
+  rewriteKeyFiguresSection,
+} from "./figure-extractor.mjs";
 import { runCommand } from "./process.mjs";
 
 const REPO_ROOT = path.resolve(
@@ -192,7 +196,25 @@ export async function processNote(notePath, config, state, options = {}) {
     );
   }
 
-  const updatedMarkdown = upsertAiNotes(rawMarkdown, aiNotesContent);
+  const figureExtractor = options.figureExtractor ?? extractPdfFigures;
+  try {
+    await figureExtractor({
+      pdfPath: job.codexPdfPath,
+      aiNotesContent,
+      teaserImagePath: job.descriptor.teaser_image_path,
+      pipelineImagePath: job.descriptor.pipeline_image_path,
+    });
+  } catch {
+    // Figure extraction is best-effort; note generation should still finish.
+  }
+
+  const finalizedAiNotesContent = rewriteKeyFiguresSection(aiNotesContent, {
+    teaserMarkdownEmbed: job.descriptor.teaser_markdown_embed,
+    pipelineMarkdownEmbed: job.descriptor.pipeline_markdown_embed,
+    teaserExists: await fileExists(job.descriptor.teaser_image_path),
+    pipelineExists: await fileExists(job.descriptor.pipeline_image_path),
+  });
+  const updatedMarkdown = upsertAiNotes(rawMarkdown, finalizedAiNotesContent);
   await fs.writeFile(resolvedNotePath, updatedMarkdown, "utf8");
   const finalNoteStat = await fs.stat(resolvedNotePath);
 

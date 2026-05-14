@@ -161,6 +161,166 @@ console.log("# AI Notes\\n\\n## 关键图表\\n");
   assert.ok(await pathExists(expectedAssetDir));
 });
 
+test("processNote rewrites key figure embeds from local extractor outputs", async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "obsitero-runtime-"));
+  const vaultDir = path.join(tempDir, "vault");
+  const watchDir = path.join(vaultDir, "Zotero");
+  const workRoot = path.join(tempDir, "work");
+  const pdfPath = path.join(tempDir, "paper.pdf");
+  const notePath = path.join(watchDir, "Local Extractor Paper.md");
+  const aiScriptPath = path.join(tempDir, "fake-ai.mjs");
+
+  await fs.mkdir(watchDir, { recursive: true });
+  await fs.writeFile(pdfPath, "fake pdf");
+  await fs.writeFile(
+    notePath,
+    `---\nlocal_file: ${JSON.stringify(pdfPath)}\n---\n\n# My Notes\n`,
+  );
+  await fs.writeFile(
+    aiScriptPath,
+    `
+console.log(\`# AI Notes
+
+## 核心贡献
+
+1. A local extractor should own image files.
+
+## 关键图表
+
+### Teaser
+
+![]()
+
+**说明**: Fig. 1 shows the overview.
+
+### Pipeline
+
+![]()
+
+**说明**: Fig. 2 shows the method pipeline.
+
+## 问题背景
+
+Background.\`);
+`.trim(),
+  );
+
+  const result = await processNote(
+    notePath,
+    {
+      repoRoot: process.cwd(),
+      configDir: tempDir,
+      watchDir,
+      vaultDir,
+      stateFile: path.join(tempDir, "state.json"),
+      workRoot,
+      aiCommand: [process.execPath, aiScriptPath],
+      codexModel: "",
+    },
+    { notes: {} },
+    {
+      mode: "run-once",
+      figureExtractor: async ({
+        pdfPath: extractorPdfPath,
+        aiNotesContent,
+        teaserImagePath,
+        pipelineImagePath,
+      }) => {
+        assert.equal(
+          extractorPdfPath,
+          path.join(workRoot, "local-extractor-paper", "paper.pdf"),
+        );
+        assert.match(aiNotesContent, /Fig\. 2 shows the method pipeline/);
+        await fs.writeFile(teaserImagePath, "teaser image");
+        await fs.writeFile(pipelineImagePath, "pipeline image");
+      },
+    },
+  );
+
+  const updated = await fs.readFile(notePath, "utf8");
+  assert.equal(result.status, "processed");
+  assert.match(
+    updated,
+    /!\[]\(..\/assets\/obsitero\/local-extractor-paper\/images\/teaser\.jpg\)/,
+  );
+  assert.match(
+    updated,
+    /!\[]\(..\/assets\/obsitero\/local-extractor-paper\/images\/pipeline\.jpg\)/,
+  );
+  assert.match(updated, /\*\*说明\*\*: Fig\. 1 shows the overview\./);
+  assert.match(updated, /\*\*说明\*\*: Fig\. 2 shows the method pipeline\./);
+});
+
+test("processNote keeps AI notes when figure extraction fails", async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "obsitero-runtime-"));
+  const vaultDir = path.join(tempDir, "vault");
+  const watchDir = path.join(vaultDir, "Zotero");
+  const workRoot = path.join(tempDir, "work");
+  const pdfPath = path.join(tempDir, "paper.pdf");
+  const notePath = path.join(watchDir, "Extractor Failure Paper.md");
+  const aiScriptPath = path.join(tempDir, "fake-ai.mjs");
+
+  await fs.mkdir(watchDir, { recursive: true });
+  await fs.writeFile(pdfPath, "fake pdf");
+  await fs.writeFile(
+    notePath,
+    `---\nlocal_file: ${JSON.stringify(pdfPath)}\n---\n\n# My Notes\n`,
+  );
+  await fs.writeFile(
+    aiScriptPath,
+    `
+console.log(\`# AI Notes
+
+## 核心贡献
+
+1. AI notes should still be written.
+
+## 关键图表
+
+### Teaser
+
+![]()
+
+**说明**: Fig. 1 shows the overview.
+
+### Pipeline
+
+![]()
+
+**说明**: Fig. 2 shows the method pipeline.\`);
+`.trim(),
+  );
+
+  const result = await processNote(
+    notePath,
+    {
+      repoRoot: process.cwd(),
+      configDir: tempDir,
+      watchDir,
+      vaultDir,
+      stateFile: path.join(tempDir, "state.json"),
+      workRoot,
+      aiCommand: [process.execPath, aiScriptPath],
+      codexModel: "",
+    },
+    { notes: {} },
+    {
+      mode: "run-once",
+      figureExtractor: async () => {
+        throw new Error("local tools unavailable");
+      },
+    },
+  );
+
+  const updated = await fs.readFile(notePath, "utf8");
+  assert.equal(result.status, "processed");
+  assert.match(updated, /# AI Notes/);
+  assert.match(updated, /1\. AI notes should still be written\./);
+  assert.match(updated, /### Teaser\n\n!\[]\(\)/);
+  assert.match(updated, /### Pipeline\n\n!\[]\(\)/);
+  assert.doesNotMatch(updated, /assets\/obsitero\/extractor-failure-paper/);
+});
+
 async function pathExists(targetPath) {
   try {
     await fs.access(targetPath);

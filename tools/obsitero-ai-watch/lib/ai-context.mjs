@@ -38,22 +38,22 @@ Hard requirements:
 - Do NOT include <!-- OBSITERO-AI-START --> or <!-- OBSITERO-AI-END -->
 - Write in concise Chinese
 - Use tools to read and inspect the PDF file named below.
-- You may create or overwrite only the configured teaser and pipeline image files listed below.
-- Do not modify any other files.
+- Do not create, overwrite, or modify image files.
+- Do not modify any files.
 - Do not ask follow-up questions.
 - Keep the section order aligned with the template.
 - If information is missing, say "未提及" instead of fabricating details.
-- You must try to identify a teaser/overview figure and a pipeline/architecture/method figure.
-- Crops must include the figure body and the corresponding caption together.
-- In "## 关键图表", put the exact generated embeds under Teaser and Pipeline when files are created.
-- If a figure cannot be identified reliably, leave that embed empty as "![]()" and explain "未提及" or the reason.
+- Identify a teaser/overview figure and a pipeline/architecture/method figure when possible.
+- Prefer explicit Figure/Fig. numbers in the Teaser and Pipeline explanations.
+- In "## 关键图表", leave image embed lines empty as "![]()"; the local watcher will replace them after deterministic extraction succeeds.
+- If a figure cannot be identified reliably, keep the embed empty as "![]()" and explain "未提及" or the reason.
 
 PDF file to analyze:
 <pdf_path>
 ${pdfPath}
 </pdf_path>
 
-Configured figure outputs:
+Local figure extraction outputs for watcher context only:
 <figure_outputs>
 asset_dir: ${figureAssetDir}
 teaser_image_path: ${teaserImagePath}

@@ -3,11 +3,9 @@
 `obsitero-ai-watch` is a standalone local companion tool for Obsitero.
 
 It watches your synced Obsidian paper notes, reads each paper's `local_file`,
-asks Codex to analyze the local PDF, and writes a managed `# AI Notes` block
-back into the same markdown file by invoking a configurable local AI command.
-The Codex-direct workflow also attempts to extract Teaser and Pipeline figure
-crops, including captions, into `assets/obsitero/<paper-slug>/images/` and
-embeds created images under `# AI Notes` / `## 关键图表`.
+asks Codex to analyze the local PDF, writes Teaser and Pipeline figure crops
+with local PDF tools, and writes a managed `# AI Notes` block back into the
+same markdown file by invoking a configurable local AI command.
 
 ## Directory Layout
 
@@ -38,6 +36,11 @@ Generated figure assets are written under:
 
 - `<vaultDir>/assets/obsitero/<paper-slug>/images/teaser.jpg`
 - `<vaultDir>/assets/obsitero/<paper-slug>/images/pipeline.jpg`
+
+Codex identifies and explains likely Teaser/Pipeline figures in text. The
+watcher owns image extraction with local `pdftotext`, `pdftoppm`, and
+ImageMagick `magick` commands, then rewrites `# AI Notes` / `## 关键图表` embeds
+only for image files that were actually created.
 
 ## Commands
 

@@ -24,14 +24,11 @@ test("buildAiPrompt lets Codex inspect the PDF", () => {
     prompt,
     /Return ONLY markdown content starting with "# AI Notes"/,
   );
-  assert.match(
-    prompt,
-    /create or overwrite only the configured teaser and pipeline image files/,
-  );
+  assert.match(prompt, /Do not create, overwrite, or modify image files/);
   assert.match(prompt, /teaser\/overview figure/);
   assert.match(prompt, /pipeline\/architecture\/method figure/);
-  assert.match(prompt, /figure body and the corresponding caption together/);
-  assert.match(prompt, /In "## 关键图表"/);
+  assert.match(prompt, /Prefer explicit Figure\/Fig\. numbers/);
+  assert.match(prompt, /leave image embed lines empty as "!\[]\(\)"/);
   assert.match(
     prompt,
     /\/tmp\/vault\/assets\/obsitero\/test-paper\/images\/teaser\.jpg/,
