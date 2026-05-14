@@ -18,3 +18,7 @@ logs
 
 # Local planning/spec docs
 docs
+
+# Local AI watch config/state
+tools/obsitero-ai-watch/config.json
+tools/obsitero-ai-watch/state.json

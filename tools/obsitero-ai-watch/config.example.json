@@ -1,0 +1,14 @@
+{
+  "vaultDir": "/absolute/path/to/your/obsidian-vault",
+  "watchDir": "/absolute/path/to/your/obsidian-vault/Zotero",
+  "stateFile": "./state.json",
+  "workRoot": "/tmp/obsitero-ai-watch",
+  "scanOnStartup": true,
+  "fileStableMs": 2500,
+  "unsetProxyEnv": true,
+  "aiCommand": [
+    "node",
+    "{{repo_root}}/tools/obsitero-ai-watch/bin/obsitero-ai-codex.mjs",
+    "{{job_file}}"
+  ]
+}

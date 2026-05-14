@@ -22,6 +22,8 @@
   "license": "AGPL-3.0-or-later",
   "scripts": {
     "start": "zotero-plugin serve",
+    "ai:watch": "node tools/obsitero-ai-watch/bin/obsitero-ai-watch.mjs --config tools/obsitero-ai-watch/config.json",
+    "ai:run-once": "node tools/obsitero-ai-watch/bin/obsitero-ai-run-once.mjs --config tools/obsitero-ai-watch/config.json",
     "build": "zotero-plugin build && node scripts/repack-xpi.mjs .scaffold/build/addon dist/obsitero.xpi && node scripts/verify-xpi-manifest.mjs dist/obsitero.xpi && tsc --noEmit",
     "lint:check": "prettier --check . && eslint .",
     "lint:fix": "prettier --write . && eslint . --fix",

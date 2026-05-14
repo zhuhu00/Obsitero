@@ -54,6 +54,7 @@ export interface RenderSyncedMarkdownOptions {
 
 export interface BasesFileOptions {
   outputFolder: string;
+  fileNames?: string[];
 }
 
 export const DEFAULT_SYNC_FIELDS: SyncField[] = [
@@ -83,7 +84,8 @@ export const ALL_SYNC_FIELDS: SyncField[] = [
 const MANAGED_START = "<!-- ZOTERO-SYNC:BEGIN -->";
 const MANAGED_END = "<!-- ZOTERO-SYNC:END -->";
 const SYNC_ID_MARKER_PREFIX = "<!-- OBSITERO-ID:";
-const LAST_SYNC_FIELD = "last_synced_at";
+const LEGACY_LAST_SYNC_FIELD = "last_synced_at";
+const CREATED_FIELD = "created";
 const DISPLAY_TITLE_FIELD = "display_title";
 const NOTE_CSS_CLASSES = ["zotero-paper"];
 const PRIMARY_FIELD_ORDER: SyncField[] = [
@@ -164,17 +166,19 @@ export function renderSyncedMarkdown({
   ].join("\n");
 }
 
-export function buildBasesFile({ outputFolder }: BasesFileOptions): string {
+export function buildBasesFile({
+  outputFolder,
+  fileNames = [],
+}: BasesFileOptions): string {
   return [
-    "filters:",
-    "  and:",
-    `    - 'file.inFolder("${escapeForSingleQuotedBaseString(outputFolder)}")'`,
-    "    - 'file.ext == \"md\"'",
+    ...renderBaseFilters(outputFolder, fileNames),
     "formulas:",
     `  title_link: '${buildLinkFormula("file.name", "display_title", true)}'`,
     `  pdf_link: '${buildLinkFormula("pdf", "pdf")}'`,
     `  local_file_link: '${buildLinkFormula("local_file", "local")}'`,
     "properties:",
+    `  ${CREATED_FIELD}:`,
+    '    displayName: "Created"',
     "  formula.title_link:",
     '    displayName: "Title"',
     "  authors:",
@@ -195,6 +199,7 @@ export function buildBasesFile({ outputFolder }: BasesFileOptions): string {
     "  - type: table",
     '    name: "Library"',
     "    order:",
+    `      - note.${CREATED_FIELD}`,
     "      - formula.title_link",
     "      - note.authors",
     "      - note.publication",
@@ -204,9 +209,37 @@ export function buildBasesFile({ outputFolder }: BasesFileOptions): string {
     "      - note.code",
     "      - note.page",
     "    sort:",
-    "      - property: note.last_synced_at",
+    `      - property: note.${CREATED_FIELD}`,
     "        direction: DESC",
+    `      - property: note.${DISPLAY_TITLE_FIELD}`,
+    "        direction: ASC",
   ].join("\n");
+}
+
+function renderBaseFilters(outputFolder: string, fileNames: string[]) {
+  const uniqueFileNames = Array.from(
+    new Set(fileNames.map((fileName) => fileName.trim()).filter(Boolean)),
+  );
+  if (!uniqueFileNames.length) {
+    return [
+      "filters:",
+      "  and:",
+      renderBaseFilterExpression(
+        `file.inFolder(${quoteBaseString(outputFolder)})`,
+      ),
+      renderBaseFilterExpression('file.ext == "md"'),
+    ];
+  }
+
+  return [
+    "filters:",
+    "  or:",
+    ...uniqueFileNames.map((fileName) =>
+      renderBaseFilterExpression(
+        `file.path == ${quoteBaseString(joinObsidianPath(outputFolder, fileName))}`,
+      ),
+    ),
+  ];
 }
 
 function renderFrontmatter(
@@ -228,12 +261,12 @@ function renderFrontmatter(
         : (item.title ?? ""),
     )}`,
   );
+  lines.push(
+    `${CREATED_FIELD}: ${resolveCreatedDate(existingContent, syncedAt)}`,
+  );
   lines.push(...renderOrderedFields(item, selectedFields, existingContent));
   lines.push(...renderField("code", item, existingContent));
   lines.push(...renderField("page", item, existingContent));
-  if (syncedAt) {
-    lines.push(`${LAST_SYNC_FIELD}: ${escapeYaml(syncedAt)}`);
-  }
 
   lines.push("---");
   return lines.join("\n");
@@ -246,6 +279,62 @@ function buildLinkFormula(
 ) {
   const renderedLabel = labelIsExpression ? label : `"${label}"`;
   return `if(${field}, link(${field}, ${renderedLabel}), "")`;
+}
+
+function renderBaseFilterExpression(expression: string) {
+  return `    - '${escapeForSingleQuotedBaseString(expression)}'`;
+}
+
+function resolveCreatedDate(existingContent?: string, syncedAt?: string) {
+  const existingCreated = extractExistingScalarField(
+    existingContent,
+    CREATED_FIELD,
+  );
+  const createdDate = toDateOnly(existingCreated.value);
+  if (existingCreated.found && createdDate) {
+    return createdDate;
+  }
+
+  const existingLastSynced = extractExistingScalarField(
+    existingContent,
+    LEGACY_LAST_SYNC_FIELD,
+  );
+  const lastSyncedDate = toDateOnly(existingLastSynced.value);
+  if (lastSyncedDate) {
+    return lastSyncedDate;
+  }
+
+  return toDateOnly(syncedAt) ?? new Date().toISOString().slice(0, 10);
+}
+
+function toDateOnly(value?: string) {
+  const trimmed = value?.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+
+  const datePrefix = trimmed.match(/^(\d{4}-\d{2}-\d{2})(?:$|[T\s])/);
+  if (datePrefix) {
+    return datePrefix[1];
+  }
+
+  const timestamp = Date.parse(trimmed);
+  if (Number.isNaN(timestamp)) {
+    return undefined;
+  }
+  return new Date(timestamp).toISOString().slice(0, 10);
+}
+
+function quoteBaseString(value: string) {
+  return `"${value.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
+}
+
+function joinObsidianPath(folder: string, fileName: string) {
+  const normalizedFolder = folder.trim().replace(/^\/+|\/+$/g, "");
+  if (!normalizedFolder) {
+    return fileName;
+  }
+  return `${normalizedFolder}/${fileName}`;
 }
 
 function escapeForSingleQuotedBaseString(value: string) {
@@ -483,7 +572,10 @@ function extractExistingPaperLink(
 function extractExistingLocalFile(
   existingContent: string | undefined,
 ): ExistingFieldValue<string> {
-  const currentField = extractExistingScalarField(existingContent, "local_file");
+  const currentField = extractExistingScalarField(
+    existingContent,
+    "local_file",
+  );
   if (currentField.found) {
     return currentField;
   }

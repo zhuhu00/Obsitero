@@ -162,8 +162,10 @@ export async function syncItemsToObsidian(items: Zotero.Item[]) {
 
   if (getPref("createDataviewIndex")) {
     const basePath = joinPath(outputDirectory, BASES_FILE_NAME);
+    const baseFileNames = await listBaseMarkdownFileNames(outputDirectory);
     const baseContent = buildBasesFile({
       outputFolder: getPref("outputFolder") || DEFAULT_OUTPUT_FOLDER,
+      fileNames: baseFileNames,
     });
     await Zotero.File.putContentsAsync(basePath, baseContent);
     await debugLog("syncItemsToObsidian:wrote-base-file", { basePath });
@@ -302,6 +304,13 @@ function getOutputDirectory() {
   }
 
   return joinPath(vaultPath, outputFolder);
+}
+
+async function listBaseMarkdownFileNames(outputDirectory: string) {
+  const existingFiles = await listExistingMarkdownFiles(outputDirectory);
+  return Array.from(existingFiles.names)
+    .filter((name) => name !== LEGACY_INDEX_FILE_NAME)
+    .sort((a, b) => a.localeCompare(b));
 }
 
 async function readIfExists(path: string) {

@@ -28,6 +28,7 @@ Each synced paper looks roughly like this:
 ```md
 ---
 display_title: "OccAny: Generalized Unconstrained Urban 3D Occupancy"
+created: 2026-04-09
 authors:
   - "Author A"
   - "Author B"
@@ -38,7 +39,6 @@ pdf: "https://arxiv.org/abs/..."
 local_file: "file:///Users/hu/Zotero/storage/XXXX/paper.pdf"
 code:
 page:
-last_synced_at: "2026-04-09T10:00:00.000Z"
 ---
 
 # My Notes
@@ -119,8 +119,8 @@ This means you can refine metadata in Obsidian without having later syncs overwr
 These are maintained by Obsitero itself:
 
 - `cssclasses`
+- `created` (set once, then preserved on resync)
 - `local_file`
-- `last_synced_at`
 - the managed `# Zotero Notes` block
 
 ## Auto-Sync Behavior
@@ -145,6 +145,36 @@ Current auto-sync does not yet fully cover:
 - PDF annotations are not yet synced directly
 - The library view depends on Obsidian Bases support
 - Styling shown in screenshots/workflows may depend on your Obsidian theme and snippets
+
+## AI Watch
+
+Obsitero also includes a separate local companion tool for PDF-based AI notes:
+
+- `tools/obsitero-ai-watch/`
+
+It is intentionally not part of the Zotero XPI. The plugin still handles
+`Zotero -> Markdown`, while the watcher handles:
+
+- detecting synced paper notes in your Obsidian `Zotero/` folder
+- reading each note's `local_file`
+- invoking a configurable local AI command that asks Codex to analyze the local PDF
+- writing a managed `# AI Notes` block back into the same paper note
+
+The default command entrypoints are:
+
+```bash
+npm run ai:run-once
+npm run ai:watch
+```
+
+Configuration lives in:
+
+- `tools/obsitero-ai-watch/config.json`
+
+Start from:
+
+- [`tools/obsitero-ai-watch/config.example.json`](./tools/obsitero-ai-watch/config.example.json)
+- [`tools/obsitero-ai-watch/README.md`](./tools/obsitero-ai-watch/README.md)
 
 ## Recommended Obsidian Setup
 

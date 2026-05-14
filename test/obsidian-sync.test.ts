@@ -129,26 +129,39 @@ describe("obsidian sync", function () {
       assert.include(baseContents as string, "filters:");
       assert.include(
         baseContents as string,
-        `- 'file.inFolder("${OUTPUT_FOLDER}")'`,
+        `- 'file.path == "${OUTPUT_FOLDER}/Test Paper Alpha.md"'`,
       );
-      assert.include(baseContents as string, `- 'file.ext == "md"'`);
+      assert.include(
+        baseContents as string,
+        `- 'file.path == "${OUTPUT_FOLDER}/Test Paper Beta.md"'`,
+      );
       assert.include(baseContents as string, "properties:");
+      assert.include(baseContents as string, "created:");
+      assert.include(baseContents as string, 'displayName: "Created"');
       assert.include(baseContents as string, "formula.title_link:");
       assert.include(baseContents as string, 'displayName: "Title"');
       assert.include(baseContents as string, "authors:");
       assert.include(baseContents as string, 'displayName: "Authors"');
       assert.include(baseContents as string, "formulas:");
       assert.include(baseContents as string, "title_link:");
-      assert.include(
-        baseContents as string,
-        "pdf_link:",
-      );
-      assert.include(
-        baseContents as string,
-        "local_file_link:",
-      );
+      assert.include(baseContents as string, "pdf_link:");
+      assert.include(baseContents as string, "local_file_link:");
       assert.include(baseContents as string, "views:");
-      assert.include(baseContents as string, "name: \"Library\"");
+      assert.include(baseContents as string, 'name: "Library"');
+      assert.include(baseContents as string, "      - note.created");
+      assert.isTrue(
+        (baseContents as string).indexOf("      - note.created") <
+          (baseContents as string).indexOf("      - formula.title_link"),
+      );
+      assert.include(baseContents as string, "      - property: note.created");
+      assert.include(
+        baseContents as string,
+        "      - property: note.display_title",
+      );
+      assert.notInclude(
+        baseContents as string,
+        "      - property: note.last_synced_at",
+      );
 
       const allMarkdown = await listMarkdownFiles(OUTPUT_DIRECTORY);
       const syncedPages = allMarkdown.filter(
@@ -183,12 +196,19 @@ describe("obsidian sync", function () {
         pageContents.every((content) => !/^title:/m.test(content as string)),
       );
       assert.isTrue(
-        pageContents.every((content) =>
-          (content as string).includes("last_synced_at:"),
+        pageContents.every(
+          (content) => !(content as string).includes("last_synced_at:"),
         ),
       );
       assert.isTrue(
-        pageContents.every((content) => (content as string).includes("authors:")),
+        pageContents.every((content) =>
+          /^created: \d{4}-\d{2}-\d{2}$/m.test(content as string),
+        ),
+      );
+      assert.isTrue(
+        pageContents.every((content) =>
+          (content as string).includes("authors:"),
+        ),
       );
       assert.isTrue(
         pageContents.every((content) =>
@@ -201,8 +221,8 @@ describe("obsidian sync", function () {
       assert.isTrue(
         pageContents.every(
           (content) =>
-            (content as string).indexOf("page:") <
-            (content as string).indexOf("last_synced_at:"),
+            (content as string).indexOf("created:") <
+            (content as string).indexOf("page:"),
         ),
       );
       assert.isTrue(
@@ -249,10 +269,7 @@ describe("obsidian sync", function () {
         alphaContent as string,
         /^local_file:\s*"file:\/\/.+Test(?:%20| )Paper(?:%20| )Alpha\.pdf"$/m,
       );
-      assert.include(
-        alphaContent as string,
-        '<!-- OBSITERO-ID: "',
-      );
+      assert.include(alphaContent as string, '<!-- OBSITERO-ID: "');
       assert.include(alphaContent as string, "Alpha AI summary");
       assert.include(alphaContent as string, "Alpha comment");
       assert.isTrue(

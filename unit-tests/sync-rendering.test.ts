@@ -89,6 +89,7 @@ describe("sync markdown rendering", function () {
           "cssclasses:",
           '  - "zotero-paper"',
           'display_title: "EmbodiedSAM"',
+          "created: 2026-04-09",
           "authors:",
           '  - "Alice Zhang"',
           '  - "Bob Li"',
@@ -99,13 +100,61 @@ describe("sync markdown rendering", function () {
           'local_file: "file:///Users/hu/Zotero/storage/ABCD1234/paper.pdf"',
           "code:",
           "page:",
-          'last_synced_at: "2026-04-09T01:20:00.000Z"',
           "---",
         ].join("\n"),
       ),
     );
+    assert.ok(!markdown.includes("last_synced_at:"));
     assert.ok(!markdown.includes("<!-- ZOTERO-SYNC:BEGIN -->"));
     assert.match(markdown, /\n# My Notes\n\n$/);
+  });
+
+  it("preserves an existing created date on subsequent syncs", function () {
+    const existing = [
+      "---",
+      'display_title: "EmbodiedSAM"',
+      "created: 2026-03-21",
+      'last_synced_at: "2026-04-08T01:20:00.000Z"',
+      "---",
+      "",
+      "# My Notes",
+      "",
+    ].join("\n");
+
+    const markdown = renderSyncedMarkdown({
+      item: sampleItem,
+      selectedFields: DEFAULT_SYNC_FIELDS,
+      existingContent: existing,
+      syncedAt: "2026-04-09T01:20:00.000Z",
+    });
+
+    assert.match(markdown, /^created: 2026-03-21$/m);
+    assert.equal(markdown.match(/^created:/gm)?.length, 1);
+    assert.ok(!/^created: 2026-04-09$/m.test(markdown));
+    assert.ok(!markdown.includes("last_synced_at:"));
+  });
+
+  it("backfills created from an existing last_synced_at date", function () {
+    const existing = [
+      "---",
+      'display_title: "EmbodiedSAM"',
+      'last_synced_at: "2026-04-08T01:20:00.000Z"',
+      "---",
+      "",
+      "# My Notes",
+      "",
+    ].join("\n");
+
+    const markdown = renderSyncedMarkdown({
+      item: sampleItem,
+      selectedFields: DEFAULT_SYNC_FIELDS,
+      existingContent: existing,
+      syncedAt: "2026-04-09T01:20:00.000Z",
+    });
+
+    assert.match(markdown, /^created: 2026-04-08$/m);
+    assert.equal(markdown.match(/^created:/gm)?.length, 1);
+    assert.ok(!markdown.includes("last_synced_at:"));
   });
 
   it("quotes YAML-sensitive scalar values so Obsidian properties stay valid", function () {
@@ -179,7 +228,7 @@ describe("sync markdown rendering", function () {
     assert.ok(markdown.includes('title: "EmbodiedSAM"'));
     assert.ok(markdown.includes('citation_key: "zhang2025embodiedsam"'));
     assert.ok(markdown.includes('date_modified: "2026-04-08T12:00:00Z"'));
-    assert.ok(markdown.includes('last_synced_at: "2026-04-09T01:20:00.000Z"'));
+    assert.ok(!markdown.includes("last_synced_at:"));
     assert.ok(markdown.includes('  - "zotero-paper"'));
     assert.ok(markdown.includes('code: "https://github.com/example/project"'));
     assert.ok(markdown.includes('page: "https://project.example.com"'));
@@ -239,7 +288,7 @@ describe("sync markdown rendering", function () {
     );
     assert.ok(markdown.includes('code: "https://github.com/example/project"'));
     assert.ok(markdown.includes('page: "https://project.example.com"'));
-    assert.ok(markdown.includes('last_synced_at: "2026-04-09T02:00:00.000Z"'));
+    assert.ok(!markdown.includes("last_synced_at:"));
     assert.ok(!markdown.includes('display_title: "EmbodiedSAM"'));
     assert.ok(!markdown.includes('publication: "ICLR"'));
     assert.ok(!markdown.includes('zotero_url: "'));
@@ -271,7 +320,8 @@ describe("sync markdown rendering", function () {
     const markdown = renderSyncedMarkdown({
       item: {
         ...sampleItem,
-        title: "OccSim: Multi-kilometer Simulation with Long-horizon Occupancy World Models",
+        title:
+          "OccSim: Multi-kilometer Simulation with Long-horizon Occupancy World Models",
         authors: ["Tianran Liu", "Shengwen Zhao"],
         publication: "",
         tags: ["Unread"],
@@ -352,6 +402,8 @@ describe("sync markdown rendering", function () {
         '  pdf_link: \'if(pdf, link(pdf, "pdf"), "")\'',
         '  local_file_link: \'if(local_file, link(local_file, "local"), "")\'',
         "properties:",
+        "  created:",
+        '    displayName: "Created"',
         "  formula.title_link:",
         '    displayName: "Title"',
         "  authors:",
@@ -372,6 +424,7 @@ describe("sync markdown rendering", function () {
         "  - type: table",
         '    name: "Library"',
         "    order:",
+        "      - note.created",
         "      - formula.title_link",
         "      - note.authors",
         "      - note.publication",
@@ -381,22 +434,40 @@ describe("sync markdown rendering", function () {
         "      - note.code",
         "      - note.page",
         "    sort:",
-        "      - property: note.last_synced_at",
+        "      - property: note.created",
         "        direction: DESC",
+        "      - property: note.display_title",
+        "        direction: ASC",
       ].join("\n"),
     );
   });
 
-  it("places last_synced_at after page in synced note frontmatter", function () {
+  it("renders explicit paper paths in the Bases file when provided", function () {
+    const index = buildBasesFile({
+      outputFolder: "Zotero",
+      fileNames: [
+        "Test Paper Alpha.md",
+        "Test Paper Beta.md",
+        "Test Paper Alpha.md",
+      ],
+    });
+
+    assert.ok(index.includes("  or:"));
+    assert.ok(index.includes(`- 'file.path == "Zotero/Test Paper Alpha.md"'`));
+    assert.ok(index.includes(`- 'file.path == "Zotero/Test Paper Beta.md"'`));
+    assert.ok(!index.includes(`- 'file.inFolder("Zotero")'`));
+    assert.equal(index.match(/Test Paper Alpha/g)?.length, 1);
+  });
+
+  it("places created before page and omits the legacy sync date", function () {
     const markdown = renderSyncedMarkdown({
       item: sampleItem,
       selectedFields: DEFAULT_SYNC_FIELDS,
       syncedAt: "2026-04-09T01:20:00.000Z",
     });
 
-    assert.ok(
-      markdown.indexOf("page:") < markdown.indexOf("last_synced_at:"),
-    );
+    assert.ok(markdown.indexOf("created:") < markdown.indexOf("page:"));
+    assert.ok(!markdown.includes("last_synced_at:"));
   });
 
   it("renders reading and done tags as controlled tag values", function () {
