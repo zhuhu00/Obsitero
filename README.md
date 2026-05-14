@@ -159,6 +159,9 @@ It is intentionally not part of the Zotero XPI. The plugin still handles
 - reading each note's `local_file`
 - invoking a configurable local AI command that asks Codex to analyze the local PDF
 - writing a managed `# AI Notes` block back into the same paper note
+- extracting Teaser and Pipeline figure crops with captions into
+  `assets/obsitero/<paper-slug>/images/` and embedding them under
+  `# AI Notes` / `## 关键图表`
 
 The default command entrypoints are:
 

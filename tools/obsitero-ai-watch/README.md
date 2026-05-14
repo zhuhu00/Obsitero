@@ -5,6 +5,9 @@
 It watches your synced Obsidian paper notes, reads each paper's `local_file`,
 asks Codex to analyze the local PDF, and writes a managed `# AI Notes` block
 back into the same markdown file by invoking a configurable local AI command.
+The Codex-direct workflow also attempts to extract Teaser and Pipeline figure
+crops, including captions, into `assets/obsitero/<paper-slug>/images/` and
+embeds created images under `# AI Notes` / `## 关键图表`.
 
 ## Directory Layout
 
@@ -30,6 +33,11 @@ Required fields:
 
 The watcher stores one state entry per note in `stateFile`, so it does not
 re-run AI generation for the same note unless the note or PDF changed.
+
+Generated figure assets are written under:
+
+- `<vaultDir>/assets/obsitero/<paper-slug>/images/teaser.jpg`
+- `<vaultDir>/assets/obsitero/<paper-slug>/images/pipeline.jpg`
 
 ## Commands
 

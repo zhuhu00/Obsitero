@@ -170,6 +170,7 @@ export async function processNote(notePath, config, state, options = {}) {
 
   const job = await createJob(resolvedNotePath, parsedNote, config);
   await fs.mkdir(job.jobDir, { recursive: true });
+  await fs.mkdir(job.figureAssetDir, { recursive: true });
   await fs.copyFile(parsedNote.localFilePath, job.codexPdfPath);
 
   await fs.writeFile(job.jobFile, JSON.stringify(job.descriptor, null, 2));
@@ -232,11 +233,23 @@ export function primeSeenNotes(
   return { primed };
 }
 
-async function createJob(notePath, parsedNote, config) {
+export async function createJob(notePath, parsedNote, config) {
   const slug = slugify(path.basename(notePath, ".md"));
   const jobDir = path.join(config.workRoot, slug);
   const codexPdfPath = path.join(jobDir, "paper.pdf");
   const noteDir = path.dirname(notePath);
+  const figureAssetDir = path.join(
+    config.vaultDir,
+    "assets",
+    "obsitero",
+    slug,
+    "images",
+  );
+  const figureAssetMarkdownDir = toMarkdownPath(
+    path.relative(noteDir, figureAssetDir),
+  );
+  const teaserImagePath = path.join(figureAssetDir, "teaser.jpg");
+  const pipelineImagePath = path.join(figureAssetDir, "pipeline.jpg");
   const noteTemplatePath = path.join(
     config.repoRoot,
     "skills/obsitero-paper-note-writer/templates/note-template.md",
@@ -250,6 +263,12 @@ async function createJob(notePath, parsedNote, config) {
     codex_pdf_path: codexPdfPath,
     note_template_path: noteTemplatePath,
     codex_output_file: codexOutputFile,
+    figure_asset_dir: figureAssetDir,
+    figure_asset_markdown_dir: figureAssetMarkdownDir,
+    teaser_image_path: teaserImagePath,
+    pipeline_image_path: pipelineImagePath,
+    teaser_markdown_embed: buildMarkdownEmbed(noteDir, teaserImagePath),
+    pipeline_markdown_embed: buildMarkdownEmbed(noteDir, pipelineImagePath),
   };
   const jobFile = path.join(jobDir, "job.json");
 
@@ -257,6 +276,7 @@ async function createJob(notePath, parsedNote, config) {
     jobDir,
     jobFile,
     codexPdfPath,
+    figureAssetDir,
     aiLogFile: path.join(jobDir, "ai-command.log"),
     descriptor,
     variables: {
@@ -343,4 +363,12 @@ function slugify(value) {
     .replace(/^-+|-+$/g, "")
     .toLowerCase();
   return slug || "paper";
+}
+
+function buildMarkdownEmbed(noteDir, imagePath) {
+  return `![](${toMarkdownPath(path.relative(noteDir, imagePath))})`;
+}
+
+function toMarkdownPath(targetPath) {
+  return targetPath.split(path.sep).join("/");
 }

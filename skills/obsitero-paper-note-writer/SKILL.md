@@ -27,11 +27,13 @@ Reference template:
 
 1. Read `target_note` and resolve the local PDF.
 2. Inspect/read the local PDF directly with available PDF, text, and image tools as needed.
-3. Preserve YAML frontmatter exactly.
-4. Preserve `# My Notes` and its content exactly.
-5. Preserve `# Zotero Notes` and its content exactly.
-6. Generate `# AI Notes` content matching the template structure.
-7. Replace only the managed block between `<!-- OBSITERO-AI-START -->` and `<!-- OBSITERO-AI-END -->`.
+3. Extract or attempt to extract Teaser and Pipeline images, including the figure body and corresponding caption in each crop.
+4. Preserve YAML frontmatter exactly.
+5. Preserve `# My Notes` and its content exactly.
+6. Preserve `# Zotero Notes` and its content exactly.
+7. Generate `# AI Notes` content matching the template structure.
+8. Place Teaser and Pipeline markdown embeds under `# AI Notes` / `## 关键图表`, never under `# My Notes`.
+9. Replace only the managed block between `<!-- OBSITERO-AI-START -->` and `<!-- OBSITERO-AI-END -->`.
 
 If the markers are missing, replace an existing `# AI Notes` section with a new marked block. If no `# AI Notes` section exists, insert the marked block after `# My Notes` and before `# Zotero Notes` when that section exists.
 
@@ -65,7 +67,8 @@ Writing rules:
 - Prefer the paper's title, authors, year, venue/source, project page, and code link when available.
 - Explain the problem, why the method is reasonable, how modules connect, and what the real contribution is.
 - Include only key equations, each with LaTeX, meaning, and symbol notes.
-- Prefer teaser and pipeline figures for `## 关键图表` when identifiable.
+- Teaser and Pipeline extraction is mandatory to attempt for `## 关键图表`; use teaser/overview and pipeline/architecture/method figures when identifiable.
+- Each extracted figure crop must include the figure body and its caption. If a required figure cannot be identified reliably, keep its embed empty and explain `未提及` or the reason in `# AI Notes`.
 - Keep experiment notes focused on main results, ablations, and numerical evidence for central claims.
 - Include strengths, limitations, and possible improvements in `## 批判性思考`.
 

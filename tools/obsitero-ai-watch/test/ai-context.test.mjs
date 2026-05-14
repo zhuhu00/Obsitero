@@ -8,14 +8,45 @@ test("buildAiPrompt lets Codex inspect the PDF", () => {
     noteContent: "---\ndisplay_title: Test Paper\n---\n\n# My Notes\n",
     templateContent: "# AI Notes\n\n## 元信息\n",
     pdfPath: "/tmp/obsitero-ai-watch/demo/paper.pdf",
+    figureAssetDir: "/tmp/vault/assets/obsitero/test-paper/images",
+    teaserImagePath: "/tmp/vault/assets/obsitero/test-paper/images/teaser.jpg",
+    pipelineImagePath:
+      "/tmp/vault/assets/obsitero/test-paper/images/pipeline.jpg",
+    teaserMarkdownEmbed: "![](../assets/obsitero/test-paper/images/teaser.jpg)",
+    pipelineMarkdownEmbed:
+      "![](../assets/obsitero/test-paper/images/pipeline.jpg)",
   });
 
   assert.match(prompt, /PDF file to analyze/);
   assert.match(prompt, /\/tmp\/obsitero-ai-watch\/demo\/paper\.pdf/);
-  assert.match(prompt, /Use tools only to read and inspect the PDF/i);
+  assert.match(prompt, /Use tools to read and inspect the PDF/i);
   assert.match(
     prompt,
     /Return ONLY markdown content starting with "# AI Notes"/,
+  );
+  assert.match(
+    prompt,
+    /create or overwrite only the configured teaser and pipeline image files/,
+  );
+  assert.match(prompt, /teaser\/overview figure/);
+  assert.match(prompt, /pipeline\/architecture\/method figure/);
+  assert.match(prompt, /figure body and the corresponding caption together/);
+  assert.match(prompt, /In "## 关键图表"/);
+  assert.match(
+    prompt,
+    /\/tmp\/vault\/assets\/obsitero\/test-paper\/images\/teaser\.jpg/,
+  );
+  assert.match(
+    prompt,
+    /\/tmp\/vault\/assets\/obsitero\/test-paper\/images\/pipeline\.jpg/,
+  );
+  assert.match(
+    prompt,
+    /!\[\]\(\.\.\/assets\/obsitero\/test-paper\/images\/teaser\.jpg\)/,
+  );
+  assert.match(
+    prompt,
+    /!\[\]\(\.\.\/assets\/obsitero\/test-paper\/images\/pipeline\.jpg\)/,
   );
   assert.match(prompt, /Current paper note/);
   assert.match(prompt, /AI note template/);
