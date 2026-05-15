@@ -170,6 +170,32 @@ npm run ai:run-once
 npm run ai:watch
 ```
 
+AI Watch runs locally and expects:
+
+- Node.js/npm
+- Codex CLI (`codex`)
+- Poppler commands `pdftotext` and `pdftoppm`
+- ImageMagick command `magick`
+
+On macOS, install the PDF/image tools with:
+
+```bash
+brew install poppler imagemagick
+```
+
+Verify the commands are on your `PATH`:
+
+```bash
+which codex
+which pdftotext
+which pdftoppm
+which magick
+```
+
+`pdftotext` and `pdftoppm` come from Poppler. If they or `magick` are missing,
+AI text generation may still run, but Teaser/Pipeline figure extraction and
+crops fail or remain empty.
+
 Configuration lives in:
 
 - `tools/obsitero-ai-watch/config.json`

@@ -17,6 +17,35 @@ same markdown file by invoking a configurable local AI command.
 - `lib/runtime.mjs`
 - `config.example.json`
 
+## Prerequisites
+
+AI Watch runs locally and expects these commands on your `PATH`:
+
+- Node.js/npm
+- Codex CLI (`codex`)
+- Poppler `pdftotext`
+- Poppler `pdftoppm`
+- ImageMagick `magick`
+
+On macOS, install Poppler and ImageMagick with Homebrew:
+
+```bash
+brew install poppler imagemagick
+```
+
+Verify the runtime commands:
+
+```bash
+which codex
+which pdftotext
+which pdftoppm
+which magick
+```
+
+`pdftotext` and `pdftoppm` are provided by Poppler. If Poppler or
+ImageMagick is missing, AI text generation may still run, but Teaser/Pipeline
+figure extraction and image crops fail or remain empty.
+
 ## Configuration
 
 Copy `config.example.json` to `config.json` and fill in your real paths.
